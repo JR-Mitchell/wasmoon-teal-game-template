@@ -22,7 +22,7 @@ const config = {
     module: {
         rules: [
             {
-                test: /\.(ttf|wasm|png)$/,
+                test: /\.(png|wasm)$/,
                 type: 'asset/resource',
             },
             {
