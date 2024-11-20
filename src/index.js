@@ -8,57 +8,59 @@ const canvas = canvasElement.getContext('2d');
 // Create a new factory
 const factory = new LuaFactory(wasmFile);
 
-// Used for storing the result of initialisation
-const setupCache = {
-    imageMap: new Map(),
-    prefetchArray: new Array(),
-    blankColour: "white",
-    initFilename: "init.lua",
-    mainFilename: ""
+// Stored properties
+const initFilename = "init.lua"
+var blankColour = "white"
+var imageMap = new Map();
+
+function prefetchImage(path) {
+    async function fetchFile() {
+        const url = require("./assets/"+path);
+        let blob = await fetch(url).then(r => r.blob());
+        const bmp = await createImageBitmap(blob);
+        imageMap.set(path, bmp);
+    };
+
+    return fetchFile();
 };
 
-// Interface enabling lua to initialise
-const InitialisationCalls = {
-    prefetchImage: function(path) {
-        async function fetchFile() {
-            const url = require("./assets/"+path);
-            let blob = await fetch(url).then(r => r.blob());
-            const bmp = await createImageBitmap(blob);
-            setupCache.imageMap.set(path, bmp);
-        };
-    
-        setupCache.prefetchArray.push(fetchFile());
-    },
+function prefetchLuaFile(path) {
+    async function fetchFile() {
+        const rawText = require("./assets/"+path);
+        await factory.mountFile(path, rawText);
+    };
 
-    prefetchLuaFile: function(path) {
-        async function fetchFile() {
-            const rawText = require("./assets/"+path);
-            await factory.mountFile(path, rawText);
-        };
-        
-        setupCache.prefetchArray.push(fetchFile());
-    },
+    return fetchFile();
+};
 
-    setBlankColour: function(colour) {
-        setupCache.blankColour = colour;
-    },
-
-    setMainFile: function(path) {
-        setupCache.mainFilename = path;
-    }
+async function initialise(config) {
+    const prefetchArray = new Array();
+    config.imageFilenames.forEach(name => {
+        const promise = prefetchImage(name);
+        prefetchArray.push(promise);
+    });
+    config.luaFilenames.forEach(name => {
+        const promise = prefetchLuaFile(name);
+        prefetchArray.push(promise);
+    });
+    canvasElement.width = config.displayWidth;
+    canvasElement.height = config.displayHeight;
+    blankColour = config.blankColour;
+    document.getElementById("background").style.backgroundColor = config.pageBackgroundColour;
+    await Promise.all(prefetchArray);
 };
 
 // Interface enabling Lua to draw to canvas
 const CanvasCalls = {
     clearCanvas: function() {
         canvas.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        canvas.fillStyle = setupCache.blankColour;
+        canvas.fillStyle = blankColour;
         canvas.fillRect(0, 0, canvasElement.width, canvasElement.height);
     },
 
     drawImage: function(path, sx, sy, sw, sh, dx, dy, dw, dh) {
-        if (setupCache.imageMap.has(path)) {
-            const bmp = setupCache.imageMap.get(path);
+        if (imageMap.has(path)) {
+            const bmp = imageMap.get(path);
             canvas.drawImage(bmp, sx, sy, sw, sh, dx, dy, dw, dh);
         }
     }
@@ -87,22 +89,20 @@ async function execute() {
     const lua = await factory.createEngine();
 
     try {
-        // Initialisation
-        lua.global.set("Initialisation", InitialisationCalls);
         // First load the init file
-        InitialisationCalls.prefetchLuaFile(setupCache.initFilename);
-        await Promise.all(setupCache.prefetchArray);
+        await prefetchLuaFile(initFilename);
         // Then execute it
-        await lua.doFile(setupCache.initFilename);
-        await Promise.all(setupCache.prefetchArray);
-        // Initialisation no longer needed
-        lua.global.set("Initialisation", null);
+        await lua.doFile(initFilename);
+        // Get the game config
+        const config = lua.global.get("config");
+        // Initialise
+        await initialise(config);
 
         // Set up canvas
         lua.global.set("Canvas", CanvasCalls);
 
         // Run the main file
-        await lua.doFile(setupCache.mainFilename);
+        await lua.doFile(config.entryPoint);
 
         // Get the game hook
         const game = lua.global.get("Game");

@@ -1,8 +1,11 @@
-global record Initialisation
-    prefetchImage: function(path: string)
-    prefetchLuaFile: function(path: string)
-    setBlankColour: function(colour: string)
-    setMainFile: function(path: string)
+global type Config = record
+    imageFilenames: {string}
+    luaFilenames: {string}
+    blankColour: string
+    displayWidth: integer
+    displayHeight: integer
+    pageBackgroundColour: string
+    entryPoint: string
 end
 
 global record Canvas
