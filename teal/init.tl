@@ -1,0 +1,6 @@
+print("Started initialising...")
+Initialisation.prefetchImage("guy.png")
+Initialisation.prefetchLuaFile("main.lua")
+Initialisation.setMainFile("main.lua")
+Initialisation.setBlankColour("black")
+print("Completed initialising...")
