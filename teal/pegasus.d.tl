@@ -1,4 +1,13 @@
+local type socket = require("socket")
+
 local record Pegasus
+    location: string
+    host: string
+    port: string
+    timeout: integer
+    plugins: {Pegasus.Plugin}
+    log: any
+
     record Options
         host: string
         port: string
@@ -15,6 +24,7 @@ local record Pegasus
     end
 
     record Request
+        client: socket.Client
         method: function(self: Request): string
         path: function(self: Request): string
         headers: function(self: Request): {string:string}
@@ -22,10 +32,11 @@ local record Pegasus
 
     record Response
         redirect: function(self: Response, url: string)
-        write: function(self: Response, content: string)
+        write: function(self: Response, body: string, stayOpen: boolean)
         addHeader: function(self: Response, key: string, value: string)
         addHeaders: function(self: Response, headers: {string:string})
         statusCode: function(self: Response, statusCode: integer, statusText: string)
+        sendHeaders: function(self: Response, stayOpen: boolean, body: string)
     end
 
     record Plugin

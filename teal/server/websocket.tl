@@ -1,4 +1,5 @@
 local type Pegasus = require('pegasus')
+local type socket = require('socket')
 local sha1 = require('sha1')
 local base64 = require('base64')
 
@@ -6,10 +7,7 @@ local magicString <const> = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 local record WebsocketPlugin
     path: string
-    record Connection
-        -- TODO
-    end
-    connections: {string:Connection}
+    clients: {socket.Client:boolean}
 end
 
 local function getAcceptHeader(key: string): string
@@ -21,7 +19,7 @@ end
 function WebsocketPlugin:new(path: string): WebsocketPlugin
     local newInstance: WebsocketPlugin = {}
     newInstance.path = path
-    newInstance.connections = {}
+    newInstance.clients = {}
     setmetatable(newInstance, {__index = WebsocketPlugin})
     return newInstance
 end
@@ -41,11 +39,15 @@ function WebsocketPlugin:getPlugin(): Pegasus.Plugin
         -- TODO: we probably should check the host header and origin header
         local key = headers["sec-websocket-key"]
         if (key == nil) then return false end
-        self.connections[key] = {}
         response:statusCode(101)
-        response:addHeader("Upgrade", "websocket")
-        response:addHeader("Connection", "Upgrade")
+        response:addHeader("Upgrade", "websocket,Websocket")
+        response:addHeader("Connection", "Upgrade,Keep-Alive,keep-alive")
         response:addHeader("Sec-WebSocket-Accept", getAcceptHeader(key))
+        response:addHeader("Sec-Websocket-Protocol", "json")
+        response:sendHeaders(true, '')
+        response:write("\r\n", true)
+        -- Mark that this client has been transformed into a websocket
+        self.clients[request.client] = true
         return true
     end
     return plugin
