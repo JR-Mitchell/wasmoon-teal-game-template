@@ -12,4 +12,5 @@ global config: Config = {
     displayHeight = 1080,
     entryPoint = "main.lua"
 }
+Socket.open()
 print("Completed initialising...")
