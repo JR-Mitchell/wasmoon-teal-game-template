@@ -12,6 +12,8 @@ const factory = new LuaFactory(wasmFile);
 const initFilename = "init.lua"
 var blankColour = "white"
 var imageMap = new Map();
+var websocket;
+var game;
 
 function prefetchImage(path) {
     async function fetchFile() {
@@ -50,6 +52,34 @@ async function initialise(config) {
     await Promise.all(prefetchArray);
 };
 
+function registerWebsocketCallbacks() {
+    if (ws) {
+        if (game) {
+            if (game["websocketMessage"] != undefined) {
+                ws.onMessage = function(content) {
+                    game.websocketMessage(content);
+                }
+            }
+            if (game["websocketOpened"] != undefined) {
+                ws.onOpen = function() {
+                    game.websocketOpened();
+                }
+            }
+            if (game["websocketClosed"] != undefined) {
+                ws.onClose = function() {
+                    game.websocketClosed();
+                }
+            }
+            
+            if (game["websocketError"] != undefined) {
+                ws.onError = function() {
+                    game.websocketError();
+                }
+            }
+        }
+    }
+};
+
 // Interface enabling Lua to draw to canvas
 const CanvasCalls = {
     clearCanvas: function() {
@@ -65,6 +95,26 @@ const CanvasCalls = {
         }
     }
 };
+
+// Interface enabling Lua to interact with WebSockets
+const SocketCalls = {
+    open: function() {
+        websocket = new WebSocket(`ws://${window.location.host}/websocket`);
+        registerWebsocketCallbacks();
+    },
+
+    send: function(data) {
+        if (ws) {
+            ws.send(data)
+        }
+    },
+
+    close: function() {
+        if (ws) {
+            ws.close()
+        }
+    }
+}
 
 function startGameLoop(game, lua) {
     let previousTime = Date.now();
@@ -89,6 +139,8 @@ async function execute() {
     const lua = await factory.createEngine();
 
     try {
+        // Set up websocket calls
+        lua.global.set("Socket", SocketCalls);
         // First load the init file
         await prefetchLuaFile(initFilename);
         // Then execute it
@@ -105,7 +157,7 @@ async function execute() {
         await lua.doFile(config.entryPoint);
 
         // Get the game hook
-        const game = lua.global.get("Game");
+        game = lua.global.get("Game");
 
         // Set up any listeners
         if (game["keyUp"] != undefined) {
@@ -125,6 +177,8 @@ async function execute() {
                 game.keyPress(game, event.key);
             });
         }
+
+        registerWebsocketCallbacks();
 
         // Start the game loop
         startGameLoop(game, lua)
