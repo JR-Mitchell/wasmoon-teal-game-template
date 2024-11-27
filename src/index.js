@@ -52,28 +52,35 @@ async function initialise(config) {
     await Promise.all(prefetchArray);
 };
 
-function registerWebsocketCallbacks() {
+function registerWebsocketCallbacks(triggerOpen) {
     if (websocket) {
         if (game) {
             if (game["websocketMessage"] != undefined) {
                 websocket.onMessage = function(content) {
-                    game.websocketMessage(content);
+                    game.websocketMessage(game, content);
                 }
             }
             if (game["websocketOpened"] != undefined) {
-                websocket.onOpen = function() {
-                    game.websocketOpened();
+                console.log("a")
+                console.log(websocket.readyState)
+                if (triggerOpen && websocket.readyState == WebSocket.OPEN) {
+                    console.log("b")
+                    game.websocketOpened(game);
+                }
+                websocket.onopen = function() {
+                    console.log("c")
+                    game.websocketOpened(game);
                 }
             }
             if (game["websocketClosed"] != undefined) {
-                websocket.onClose = function() {
-                    game.websocketClosed();
+                websocket.onclose = function() {
+                    game.websocketClosed(game);
                 }
             }
             
             if (game["websocketError"] != undefined) {
-                websocket.onError = function() {
-                    game.websocketError();
+                websocket.onerror = function() {
+                    game.websocketError(game);
                 }
             }
         }
@@ -100,7 +107,7 @@ const CanvasCalls = {
 const SocketCalls = {
     open: function() {
         websocket = new WebSocket(`ws://${window.location.host}/websocket`);
-        registerWebsocketCallbacks();
+        registerWebsocketCallbacks(false);
     },
 
     send: function(data) {
@@ -178,7 +185,7 @@ async function execute() {
             });
         }
 
-        registerWebsocketCallbacks();
+        registerWebsocketCallbacks(true);
 
         // Start the game loop
         startGameLoop(game, lua)
