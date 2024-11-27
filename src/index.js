@@ -53,26 +53,26 @@ async function initialise(config) {
 };
 
 function registerWebsocketCallbacks() {
-    if (ws) {
+    if (websocket) {
         if (game) {
             if (game["websocketMessage"] != undefined) {
-                ws.onMessage = function(content) {
+                websocket.onMessage = function(content) {
                     game.websocketMessage(content);
                 }
             }
             if (game["websocketOpened"] != undefined) {
-                ws.onOpen = function() {
+                websocket.onOpen = function() {
                     game.websocketOpened();
                 }
             }
             if (game["websocketClosed"] != undefined) {
-                ws.onClose = function() {
+                websocket.onClose = function() {
                     game.websocketClosed();
                 }
             }
             
             if (game["websocketError"] != undefined) {
-                ws.onError = function() {
+                websocket.onError = function() {
                     game.websocketError();
                 }
             }
@@ -104,14 +104,14 @@ const SocketCalls = {
     },
 
     send: function(data) {
-        if (ws) {
-            ws.send(data)
+        if (websocket) {
+            websocket.send(data)
         }
     },
 
     close: function() {
-        if (ws) {
-            ws.close()
+        if (websocket) {
+            websocket.close()
         }
     }
 }
