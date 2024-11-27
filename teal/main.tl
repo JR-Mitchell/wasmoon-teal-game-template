@@ -4,6 +4,7 @@ global record Game
     spriteIndex: integer
     x: number
     y: number
+    socketOpen: boolean
     step: function(self: Game, dt: number)
     draw: function(self: Game)
     keyUp: function(self: Game, key: string)
@@ -16,8 +17,11 @@ Game.speed = 0.5
 Game.spriteIndex = 0
 Game.x = 300
 Game.y = 400
+Game.socketOpen = false
 
 Game.step = function(self: Game, dt: number)
+    local prevX = self.x
+    local prevY = self.y
     if (self.keyStates["w"] and not self.keyStates["s"]) then
         self.y = self.y - self.speed * dt
     end
@@ -32,6 +36,9 @@ Game.step = function(self: Game, dt: number)
         self.spriteIndex = 1
         self.x = self.x + self.speed * dt
     end
+    if (self.socketOpen and (self.x ~= prevX or self.y ~= prevY)) then
+        Socket.send("Position updated!")
+    end
 end
 
 Game.draw = function(self: Game)
@@ -45,4 +52,13 @@ end
 
 Game.keyPress = function(self: Game, key: string)
     self.keyStates[key] = true
+end
+
+function Game:websocketOpened()
+    Socket.send("Hello World!")
+    self.socketOpen = true
+end
+
+function Game:websocketClosed()
+    self.socketOpen = false
 end
