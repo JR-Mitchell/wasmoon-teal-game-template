@@ -12,3 +12,9 @@ global record Canvas
     clearCanvas: function()
     drawImage: function(path: string, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number)
 end
+
+global record Socket
+    open: function()
+    send: function(data: string)
+    close: function()
+end
