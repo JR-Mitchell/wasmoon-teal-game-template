@@ -57,7 +57,6 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                 else
                     local client = receiver as socket.Client
                     local index = self.indexMap[client]
-                    print("New message from connection "..index)
                     local line, errmsg = client:receive()
                     if (errmsg == "closed") then
                         client:close()
@@ -75,8 +74,9 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                         end
                         self.indexMap[client] = nil
                         print("Websocket connection "..index.." closed.")
+                    elseif (errmsg ~= "timeout") then
+                        print("New message from connection "..index..": "..(line or "nil")..", error: "..(errmsg or "nil"))
                     end
-                    print("Message: "..line..", error: "..errmsg)
                 end
             end
         end
