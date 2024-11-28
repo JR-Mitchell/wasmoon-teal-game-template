@@ -8,16 +8,23 @@ local record Frame
     content: string
 end
 
-local function powerOfTwo(power: integer): integer
-    return math.tointeger(math.pow(2, power))
-end
+local powerTwoTable <const> = {
+    [0] = 1,
+    [1] = 2,
+    [2] = 4,
+    [3] = 8,
+    [4] = 16,
+    [5] = 32,
+    [6] = 64,
+    [7] = 128
+}
 
 function Frame:setFirstByte(message: string, index: integer): integer
     local byte = string.byte(message, index)
     self.fin = (byte & 1) == 1
     self.rsv = {}
     for i=2,4 do
-        local mask = powerOfTwo(i - 1)
+        local mask = powerTwoTable[i - 1]
         local value = (byte & mask) == mask
         table.insert(self.rsv, value)
     end
@@ -74,6 +81,21 @@ function Frame:parse(message: string): Frame
     index = instance:readContent(message, index)
 
     return instance
+end
+
+function Frame:parseAsBits(message: string): Frame
+    local instance: Frame = {}
+    setmetatable(instance, {__index=Frame})
+    instance.content = ""
+    for i=1,#message do
+        local byte = string.byte(message, i)
+        for j=0,7 do
+            local bit = (byte & powerTwoTable[j]) // powerTwoTable[j]
+            instance.content = instance.content .. bit
+        end
+        instance.content = instance.content .. " "
+        return instance
+    end
 end
 
 function Frame:string(): string

@@ -78,8 +78,8 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                         print("New message from connection "..index..": "..(line or "nil")..", error: "..(errmsg or "nil"))
                         if (errmsg == nil and line ~= nil) then
                             local str, err2 = pcall(function(): string
-                                local frame = Frame:parse(line)
-                                return frame:string()
+                                local frame = Frame:parseAsBits(line)
+                                return frame.content
                             end)
                             if (str) then print(str) end
                             if (err2) then print("Error: "..err2) end
