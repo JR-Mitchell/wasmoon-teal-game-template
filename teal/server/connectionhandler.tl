@@ -57,6 +57,12 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                 else
                     local client = receiver as socket.Client
                     local index = self.indexMap[client]
+                    --[[
+                    TODO: the below is wrong, because client:receive with no argument receives until the next newline.
+                    As we are receiving binary data that we then need to interpret, and which is masked,
+                    we might not receive the bytes that resemble a newline for a long time; OR we might receive them multiple times per frame.
+                    Instead, we should receive the first 2 bytes, then interpret them, and read more bytes until the frame is complete.
+                    ]]--
                     local line, errmsg = client:receive()
                     if (errmsg == "closed") then
                         client:close()
@@ -75,14 +81,18 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                         self.indexMap[client] = nil
                         print("Websocket connection "..index.." closed.")
                     elseif (errmsg ~= "timeout") then
-                        print("New message from connection "..index..": "..(line or "nil")..", error: "..(errmsg or "nil"))
-                        if (errmsg == nil and line ~= nil) then
-                            local str, err2 = pcall(function(): string
-                                local frame = Frame:parseAsBits(line)
-                                return frame.content
+                        if (errmsg ~= nil) then
+                            print("Error from connection "..index..": "..errmsg)
+                        elseif (line ~= nil) then
+                            local status, result = pcall(function(): string
+                                local frame = Frame:parse(line)
+                                return frame:string()
                             end)
-                            if (str) then print(str) end
-                            if (err2) then print("Error: "..err2) end
+                            if (status) then
+                                print("Frame received from connection "..index..":\n"..result)
+                            else
+                                print("Error parsing frame from connection "..index..": "..result)
+                            end
                         end
                     end
                 end

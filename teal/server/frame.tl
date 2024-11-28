@@ -21,21 +21,21 @@ local powerTwoTable <const> = {
 
 function Frame:setFirstByte(message: string, index: integer): integer
     local byte = string.byte(message, index)
-    self.fin = (byte & 1) == 1
+    self.fin = (byte & powerTwoTable[7]) == powerTwoTable[7]
     self.rsv = {}
-    for i=2,4 do
-        local mask = powerTwoTable[i - 1]
+    for i=6,4,-1 do
+        local mask = powerTwoTable[i]
         local value = (byte & mask) == mask
         table.insert(self.rsv, value)
     end
-    self.opcode = byte >> 4
+    self.opcode = byte % powerTwoTable[4]
     return index + 1
 end
 
 function Frame:setMaskedAndLength(message: string, index: integer): integer
     local firstByte = string.byte(message, index)
-    self.masked = (firstByte & 1) == 1
-    self.length = firstByte >> 1
+    self.masked = (firstByte & powerTwoTable[7]) == powerTwoTable[7]
+    self.length = firstByte % powerTwoTable[7]
     if (self.length < 126) then
         return index + 1
     elseif (self.length == 126) then
@@ -62,7 +62,7 @@ function Frame:readContent(message: string, index: integer): integer
         local byte = string.byte(message, i)
         if (byte ~= nil) then
             if (self.masked) then
-                byte = byte ~ self.mask[i - index + 1]
+                byte = byte ~ self.mask[((i - index) % 4) + 1]
             end
             self.content = self.content .. string.char(byte)
         end
@@ -83,23 +83,12 @@ function Frame:parse(message: string): Frame
     return instance
 end
 
-function Frame:parseAsBits(message: string): Frame
-    local instance: Frame = {}
-    setmetatable(instance, {__index=Frame})
-    instance.content = ""
-    for i=1,#message do
-        local byte = string.byte(message, i)
-        for j=0,7 do
-            local bit = (byte & powerTwoTable[j]) // powerTwoTable[j]
-            instance.content = instance.content .. bit
-        end
-        instance.content = instance.content .. " "
-        return instance
-    end
+function Frame:maskString(): string
+    return "{" .. tostring(self.mask[1]) .. "," .. tostring(self.mask[2]) .. "," .. tostring(self.mask[3]) .. "," .. tostring(self.mask[4]) .. "}"
 end
 
 function Frame:string(): string
-    return "FIN: "..tostring(self.fin)..", OPCODE: "..self.opcode..", MASKED: "..tostring(self.masked)..", LENGTH: "..tostring(self.length).."\nCONTENT:\n"..self.content
+    return "FIN: "..tostring(self.fin)..", OPCODE: "..self.opcode..", MASKED: "..tostring(self.masked)..", LENGTH: "..tostring(self.length).."\nMASK: "..self:maskString().."\nCONTENT:\n"..self.content
 end
 
 return Frame
