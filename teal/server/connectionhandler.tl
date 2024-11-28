@@ -2,6 +2,7 @@ local type Pegasus = require('pegasus')
 local type Handler = require('pegasus.handler')
 local type WebsocketPlugin = require('server.websocket')
 local socket = require("socket")
+local Frame = require("server.frame")
 
 local record ConnectionHandler
     server: socket.Server
@@ -43,7 +44,6 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
 
                     if (websockets.clients[client]) then
                         print("Connection "..self.nextIndex.." converted to a websocket")
-                        client:settimeout(0)
                         table.insert(self.receivers, client)
                         table.insert(self.senders, client)
                         self.indexMap[client] = self.nextIndex
@@ -76,6 +76,14 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                         print("Websocket connection "..index.." closed.")
                     elseif (errmsg ~= "timeout") then
                         print("New message from connection "..index..": "..(line or "nil")..", error: "..(errmsg or "nil"))
+                        if (errmsg == nil and line ~= nil) then
+                            local str, err2 = pcall(function(): string
+                                local frame = Frame:parse(line)
+                                return frame:string()
+                            end)
+                            if (str) then print(str) end
+                            if (err2) then print("Error: "..err2) end
+                        end
                     end
                 end
             end
