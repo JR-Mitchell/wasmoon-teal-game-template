@@ -1,6 +1,7 @@
 local type Pegasus = require('pegasus')
 local type Handler = require('pegasus.handler')
 local type WebsocketPlugin = require('server.websocket')
+local type FrameHandler = require('server.framehandler')
 local socket = require("socket")
 local Frame = require("server.frame")
 
@@ -10,15 +11,17 @@ local record ConnectionHandler
     senders: {socket.Client}
     nextIndex: integer
     indexMap: {socket.Client:integer}
+    frameHandler: FrameHandler
 end
 
-function ConnectionHandler:new(server: socket.Server): ConnectionHandler
+function ConnectionHandler:new(server: socket.Server, frameHandler: FrameHandler): ConnectionHandler
     local instance: ConnectionHandler = {
         server = server,
         receivers = {server},
         senders = {},
         nextIndex = 1,
-        indexMap = {}
+        indexMap = {},
+        frameHandler = frameHandler
     }
     setmetatable(instance, {__index = ConnectionHandler})
     return instance
@@ -62,7 +65,8 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                         return frame
                     end)
                     if (status) then
-                        print("Frame received from connection "..index..":\n"..result:string())
+                        print("New frame received from connection "..index)
+                        pcall(function() self.frameHandler:handleFrame(result) end)
                     else
                         print("Error parsing frame from connection "..index..": "..tostring(result))
                     end
