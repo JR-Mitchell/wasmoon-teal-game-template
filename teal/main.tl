@@ -37,7 +37,7 @@ Game.step = function(self: Game, dt: number)
         self.x = self.x + self.speed * dt
     end
     if (self.socketOpen and (self.x ~= prevX or self.y ~= prevY)) then
-        Socket.send("Position updated!")
+        Socket.send("Position updated: x="..tostring(self.x)..", y="..tostring(self.y))
     end
 end
 
