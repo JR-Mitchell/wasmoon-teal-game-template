@@ -1,3 +1,5 @@
+local type socket = require("socket")
+
 local record Frame
     fin: boolean
     rsv: {boolean}
@@ -19,8 +21,7 @@ local powerTwoTable <const> = {
     [7] = 128
 }
 
-function Frame:setFirstByte(message: string, index: integer): integer
-    local byte = string.byte(message, index)
+function Frame:setFirstByte(byte: integer)
     self.fin = (byte & powerTwoTable[7]) == powerTwoTable[7]
     self.rsv = {}
     for i=6,4,-1 do
@@ -29,34 +30,30 @@ function Frame:setFirstByte(message: string, index: integer): integer
         table.insert(self.rsv, value)
     end
     self.opcode = byte % powerTwoTable[4]
-    return index + 1
 end
 
-function Frame:setMaskedAndLength(message: string, index: integer): integer
-    local firstByte = string.byte(message, index)
-    self.masked = (firstByte & powerTwoTable[7]) == powerTwoTable[7]
-    self.length = firstByte % powerTwoTable[7]
-    if (self.length < 126) then
-        return index + 1
-    elseif (self.length == 126) then
-        self.length = string.byte(message, index + 1) + 256 * string.byte(message, index + 2)
-        return index + 3
-    else
-        -- Must be 127
-        self.length = string.byte(message, index + 1) + 256 * (string.byte(message, index + 2) + 256 * (string.byte(message, index + 3) + 256 * string.byte(message, index + 4)))
-        return index + 5
+function Frame:setMaskedAndLength(byte: integer, client: socket.Client)
+    self.masked = (byte & powerTwoTable[7]) == powerTwoTable[7]
+    self.length = byte % powerTwoTable[7]
+    if (self.length == 126) then
+        local nextTwoBytes, errorMessage = client:receive(2)
+        if (errorMessage ~= nil) then error(errorMessage) end
+        self.length = string.byte(nextTwoBytes, 1) + 256 * string.byte(nextTwoBytes, 2)
+    elseif (self.length == 127) then
+        local nextFourBytes, errorMessage = client:receive(4)
+        if (errorMessage ~= nil) then error(errorMessage) end
+        self.length = string.byte(nextFourBytes, 1) + 256 * (string.byte(nextFourBytes, 2) + 256 * (string.byte(nextFourBytes, 3) + 256 * string.byte(nextFourBytes, 4)))
     end
 end
 
-function Frame:setMask(message: string, index: integer): integer
+function Frame:setMask(message: string)
     self.mask = {}
-    for i=index,index+3 do
+    for i=1,4 do
         table.insert(self.mask, string.byte(message, i))
     end
-    return index + 4
 end
 
-function Frame:readContent(message: string, index: integer): integer
+function Frame:readContent(message: string, index: integer)
     self.content = ""
     for i=index,index+self.length-1 do
         local byte = string.byte(message, i)
@@ -69,17 +66,25 @@ function Frame:readContent(message: string, index: integer): integer
     end
 end
 
-function Frame:parse(message: string): Frame
-    local index = 1
+function Frame:readNext(client: socket.Client): Frame
     local instance: Frame = {}
     setmetatable(instance, {__index=Frame})
-    index = instance:setFirstByte(message, index)
-    index = instance:setMaskedAndLength(message, index)
+    local firstTwoBytes, firstErrorMessage = client:receive(2)
+    if (firstErrorMessage ~= nil) then error(firstErrorMessage) end
+    instance:setFirstByte(string.byte(firstTwoBytes, 1))
+    instance:setMaskedAndLength(string.byte(firstTwoBytes, 2), client)
+    local remainingByteCount = instance.length
     if (instance.masked) then
-        index = instance:setMask(message, index)
+        remainingByteCount = remainingByteCount + 4
     end
-    index = instance:readContent(message, index)
-
+    local remainingBytes, secondErrorMessage = client:receive(remainingByteCount)
+    if (secondErrorMessage ~= nil) then error(secondErrorMessage) end
+    local contentIndex = 1
+    if (instance.masked) then
+        instance:setMask(remainingBytes)
+        contentIndex = 5
+    end
+    instance:readContent(remainingBytes, contentIndex)
     return instance
 end
 

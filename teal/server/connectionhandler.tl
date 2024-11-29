@@ -57,43 +57,14 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websoc
                 else
                     local client = receiver as socket.Client
                     local index = self.indexMap[client]
-                    --[[
-                    TODO: the below is wrong, because client:receive with no argument receives until the next newline.
-                    As we are receiving binary data that we then need to interpret, and which is masked,
-                    we might not receive the bytes that resemble a newline for a long time; OR we might receive them multiple times per frame.
-                    Instead, we should receive the first 2 bytes, then interpret them, and read more bytes until the frame is complete.
-                    ]]--
-                    local line, errmsg = client:receive()
-                    if (errmsg == "closed") then
-                        client:close()
-                        for i=1,#self.receivers do
-                            if self.receivers[i] == client then
-                                table.remove(self.receivers, i)
-                                break
-                            end
-                        end
-                        for i=1,#self.senders do
-                            if self.senders[i] == client then
-                                table.remove(self.senders, i)
-                                break
-                            end
-                        end
-                        self.indexMap[client] = nil
-                        print("Websocket connection "..index.." closed.")
-                    elseif (errmsg ~= "timeout") then
-                        if (errmsg ~= nil) then
-                            print("Error from connection "..index..": "..errmsg)
-                        elseif (line ~= nil) then
-                            local status, result = pcall(function(): string
-                                local frame = Frame:parse(line)
-                                return frame:string()
-                            end)
-                            if (status) then
-                                print("Frame received from connection "..index..":\n"..result)
-                            else
-                                print("Error parsing frame from connection "..index..": "..result)
-                            end
-                        end
+                    local status, result = pcall(function(): Frame
+                        local frame = Frame:readNext(client)
+                        return frame
+                    end)
+                    if (status) then
+                        print("Frame received from connection "..index..":\n"..result:string())
+                    else
+                        print("Error parsing frame from connection "..index..": "..tostring(result))
                     end
                 end
             end
