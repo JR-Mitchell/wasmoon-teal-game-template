@@ -60,7 +60,6 @@ function FrameHandler:handlePongFrame(frame: Frame)
 end
 
 function FrameHandler:handleUnknownFrameType(frame: Frame)
-    -- TODO
     print("UNKNOWN FRAME OPCODE: "..tonumber(frame.opcode))
 end
 
