@@ -7,7 +7,9 @@ local record Frame
     masked: boolean
     length: integer
     mask: {integer}
-    content: string
+    payloadBytes: string
+    stringContent: string
+    binaryContent: {integer}
 end
 
 local powerTwoTable <const> = {
@@ -53,15 +55,32 @@ function Frame:setMask(message: string)
     end
 end
 
-function Frame:readContent(message: string, index: integer)
-    self.content = ""
-    for i=index,index+self.length-1 do
-        local byte = string.byte(message, i)
+function Frame:parseContentAsString()
+    if (self.stringContent == nil) then
+        self.stringContent = ""
+    end
+    for i=1,self.length do
+        local byte = string.byte(self.payloadBytes, i)
         if (byte ~= nil) then
             if (self.masked) then
-                byte = byte ~ self.mask[((i - index) % 4) + 1]
+                byte = byte ~ self.mask[((i - 1) % 4) + 1]
             end
-            self.content = self.content .. string.char(byte)
+            self.stringContent = self.stringContent .. string.char(byte)
+        end
+    end
+end
+
+function Frame:parseContentAsBinary()
+    if (self.binaryContent == nil) then
+        self.binaryContent = {}
+    end
+    for i=1,self.length do
+        local byte = string.byte(self.payloadBytes, i)
+        if (byte ~= nil) then
+            if (self.masked) then
+                byte = byte ~ self.mask[((i - 1) % 4) + 1]
+            end
+            table.insert(self.binaryContent, byte)
         end
     end
 end
@@ -84,16 +103,8 @@ function Frame:readNext(client: socket.Client): Frame
         instance:setMask(remainingBytes)
         contentIndex = 5
     end
-    instance:readContent(remainingBytes, contentIndex)
+    instance.payloadBytes = string.sub(remainingBytes, contentIndex)
     return instance
-end
-
-function Frame:maskString(): string
-    return "{" .. tostring(self.mask[1]) .. "," .. tostring(self.mask[2]) .. "," .. tostring(self.mask[3]) .. "," .. tostring(self.mask[4]) .. "}"
-end
-
-function Frame:string(): string
-    return "FIN: "..tostring(self.fin)..", OPCODE: "..self.opcode..", MASKED: "..tostring(self.masked)..", LENGTH: "..tostring(self.length).."\nMASK: "..self:maskString().."\nCONTENT:\n"..self.content
 end
 
 return Frame

@@ -8,14 +8,14 @@ end
 
 function FrameHandler:handleUnfinishedContinuationFrame(frame: Frame)
     print("CONTINUATION FRAME.")
-    self.unfinishedFrame.content = self.unfinishedFrame.content .. frame.content
+    self.unfinishedFrame.payloadBytes = self.unfinishedFrame.payloadBytes .. frame.payloadBytes
 end
 
 function FrameHandler:handleFinalContinuationFrame(frame: Frame)
     print("FINAL CONTINUATION FRAME.")
     local finishedFrame = self.unfinishedFrame
     self.unfinishedFrame = nil
-    finishedFrame.content = finishedFrame.content .. frame.content
+    finishedFrame.payloadBytes = finishedFrame.payloadBytes .. frame.payloadBytes
     finishedFrame.fin = true
     self:handleFrame(finishedFrame)
 end
@@ -26,7 +26,8 @@ function FrameHandler:handleUnfinishedTextFrame(frame: Frame)
 end
 
 function FrameHandler:handleFinalTextFrame(frame: Frame)
-    print("TEXT FRAME. CONTENT:\n"..frame.content)
+    frame:parseContentAsString()
+    print("TEXT FRAME. CONTENT:\n"..frame.stringContent)
 end
 
 function FrameHandler:handleUnfinishedBinaryFrame(frame: Frame)
@@ -35,8 +36,12 @@ function FrameHandler:handleUnfinishedBinaryFrame(frame: Frame)
 end
 
 function FrameHandler:handleFinalBinaryFrame(frame: Frame)
-    -- TODO
-    print("BINARY FRAME.")
+    frame:parseContentAsBinary()
+    local printText = "Binary FRAME. CONTENT:\n"
+    for _, byte in ipairs(frame.binaryContent) do
+        printText = printText .. tostring(byte//16) .. tostring(byte%16) .. " "
+    end
+    print(printText)
 end
 
 function FrameHandler:handleCloseFrame(frame: Frame)
