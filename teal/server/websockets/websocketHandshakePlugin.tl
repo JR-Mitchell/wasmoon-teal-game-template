@@ -5,6 +5,7 @@ local base64 = require('base64')
 
 local magicString <const> = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
+-- Simply performs the websocket handshake over HTTP, and then passes the client to the server-client register.
 local record WebsocketHandshakePlugin
     path: string
     register: ServerClientRegister

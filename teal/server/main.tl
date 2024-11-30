@@ -18,8 +18,10 @@ mimetypes.guess = function(filename: string): string
     return super(filename)
 end
 
+-- This plugin allows the client to perform a websocket handshake
 local websocketHandshakePlugin = WebsocketHandshakePlugin:new("/websocket")
 
+-- Basic server setup
 local pegasus = Pegasus:new({
     port = "8080",
     location = "dist/",
@@ -32,6 +34,7 @@ local pegasus = Pegasus:new({
     }
 })
 
+-- A FrameHandler which broadcasts any updates to position
 local frameHandler = FrameHandler:new({
     onTextFrameParsed = function(_: FrameHandler, _: socket.Client, frame: Frame, register: ServerClientRegister)
         print("TEXT FRAME. CONTENT:\n"..frame.stringContent)
@@ -41,6 +44,8 @@ local frameHandler = FrameHandler:new({
         end
     end
 })
+
+-- A FrameHandler which pings a client after it is connected
 local connectionHandler: ConnectionHandler = ConnectionHandler:new({
     onNewWebsocket = function(_: ConnectionHandler, client: socket.Client, register: ServerClientRegister)
         local pingFrame = Frame:newPingFrame()
@@ -51,7 +56,9 @@ local connectionHandler: ConnectionHandler = ConnectionHandler:new({
 pegasus.start = function(self: Pegasus)
     local handler = Handler:new(nil, self.location, self.plugins, self.log)
     local server = assert(socket.bind(self.host, self.port))
+    -- Keeps track of connected websocket clients
     local register = ServerClientRegister:new(server)
+    -- Makes sure that any successful websocket handshake stores the client in the register
     websocketHandshakePlugin:setRegister(register)
     local ip, port = server:getsockname()
   

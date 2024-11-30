@@ -2,6 +2,7 @@ local type socket = require("socket")
 local type Frame = require("server.websockets.frame")
 local type SendableFrame = require("server.websockets.sendableFrame")
 
+-- Class for containing info about all connected websocket clients
 local record ServerClientRegister
     server: socket.Server
     receivers: {any}
