@@ -1,6 +1,6 @@
 local type socket = require("socket")
-local type Frame = require("server.frame")
-local type SendableFrame = require("server.sendableframe")
+local type Frame = require("server.websockets.frame")
+local type SendableFrame = require("server.websockets.sendableFrame")
 
 local record ServerClientRegister
     server: socket.Server

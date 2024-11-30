@@ -1,6 +1,6 @@
 local type socket = require("socket")
-local type ServerClientRegister = require('server.serverclientregister')
-local Frame = require("server.frame")
+local type ServerClientRegister = require('server.websockets.serverClientRegister')
+local Frame = require("server.websockets.frame")
 
 local record FrameHandler
     unfinishedFrameLookup: {socket.Client:Frame}

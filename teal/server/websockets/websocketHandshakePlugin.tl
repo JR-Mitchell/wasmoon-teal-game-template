@@ -1,5 +1,5 @@
 local type Pegasus = require('pegasus')
-local type ServerClientRegister = require('server.serverclientregister')
+local type ServerClientRegister = require('server.websockets.serverClientRegister')
 local sha1 = require('sha1')
 local base64 = require('base64')
 

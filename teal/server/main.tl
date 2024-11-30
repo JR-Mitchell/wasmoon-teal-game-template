@@ -1,12 +1,12 @@
 local Pegasus = require('pegasus')
 local FilesPlugin = require('pegasus.plugins.files')
-local WebsocketHandshakePlugin = require('server.websocketHandshakePlugin')
+local WebsocketHandshakePlugin = require('server.websockets.websocketHandshakePlugin')
 local mimetypes = require('mimetypes')
 local Handler = require('pegasus.handler')
-local Frame = require('server.frame')
-local FrameHandler = require('server.framehandler')
-local ConnectionHandler = require('server.connectionhandler')
-local ServerClientRegister = require('server.serverclientregister')
+local Frame = require('server.websockets.frame')
+local FrameHandler = require('server.websockets.frameHandler')
+local ConnectionHandler = require('server.websockets.connectionHandler')
+local ServerClientRegister = require('server.websockets.serverClientRegister')
 local socket = require("socket")
 
 -- Patch the mimetypes.guess function to handle wasm
