@@ -5,7 +5,7 @@ local base64 = require('base64')
 
 local magicString <const> = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
-local record WebsocketPlugin
+local record WebsocketHandshakePlugin
     path: string
     register: ServerClientRegister
 end
@@ -16,18 +16,18 @@ local function getAcceptHeader(key: string): string
     return base64.encode(byteString)
 end
 
-function WebsocketPlugin:new(path: string): WebsocketPlugin
-    local newInstance: WebsocketPlugin = {}
+function WebsocketHandshakePlugin:new(path: string): WebsocketHandshakePlugin
+    local newInstance: WebsocketHandshakePlugin = {}
     newInstance.path = path
-    setmetatable(newInstance, {__index = WebsocketPlugin})
+    setmetatable(newInstance, {__index = WebsocketHandshakePlugin})
     return newInstance
 end
 
-function WebsocketPlugin:setRegister(register: ServerClientRegister)
+function WebsocketHandshakePlugin:setRegister(register: ServerClientRegister)
     self.register = register
 end
 
-function WebsocketPlugin:getPlugin(): Pegasus.Plugin
+function WebsocketHandshakePlugin:getPlugin(): Pegasus.Plugin
     local plugin: Pegasus.Plugin = {}
     plugin.newRequestResponse = function(_: Pegasus.Plugin, request: Pegasus.Request, response: Pegasus.Response): boolean
         local method = request:method()
@@ -55,4 +55,4 @@ function WebsocketPlugin:getPlugin(): Pegasus.Plugin
     return plugin
 end
 
-return WebsocketPlugin
+return WebsocketHandshakePlugin

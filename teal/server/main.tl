@@ -1,6 +1,6 @@
 local Pegasus = require('pegasus')
-local Files = require('pegasus.plugins.files')
-local Websocket = require('server.websocket')
+local FilesPlugin = require('pegasus.plugins.files')
+local WebsocketHandshakePlugin = require('server.websocketHandshakePlugin')
 local mimetypes = require('mimetypes')
 local Handler = require('pegasus.handler')
 local Frame = require('server.frame')
@@ -18,14 +18,14 @@ mimetypes.guess = function(filename: string): string
     return super(filename)
 end
 
-local websocket = Websocket:new("/websocket")
+local websocketHandshakePlugin = WebsocketHandshakePlugin:new("/websocket")
 
 local pegasus = Pegasus:new({
     port = "8080",
     location = "dist/",
     plugins = {
-        websocket:getPlugin(),
-        Files:new({
+        websocketHandshakePlugin:getPlugin(),
+        FilesPlugin:new({
             location = "./",
             default = "index.html"
         })
@@ -52,7 +52,7 @@ pegasus.start = function(self: Pegasus)
     local handler = Handler:new(nil, self.location, self.plugins, self.log)
     local server = assert(socket.bind(self.host, self.port))
     local register = ServerClientRegister:new(server)
-    websocket:setRegister(register)
+    websocketHandshakePlugin:setRegister(register)
     local ip, port = server:getsockname()
   
     print('Pegasus is up on ' .. ip .. ":".. port)
