@@ -41,7 +41,7 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                     end)
                     if (status) then
                         print("New frame received from connection "..index)
-                        pcall(function() frameHandler:handleFrame(result) end)
+                        pcall(function() frameHandler:handleFrame(result, register) end)
                     else
                         print("Error parsing frame from connection "..index..": "..tostring(result))
                     end
