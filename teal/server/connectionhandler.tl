@@ -48,7 +48,7 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
 
                     -- Send immediate responses, e.g ping or pong
                     for _, frame in ipairs(register.immediateMessageQueue[client]) do
-                        frame:send(client)
+                        client:send(frame)
                     end
                 end
             end
@@ -59,7 +59,7 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                 -- Send non-immediate responses, e.g broadcasts
                 for _, frame in ipairs(register.messageQueue[client]) do
                     print("Sending frame to client "..tostring(index))
-                    frame:send(client)
+                    client:send(frame)
                 end
             end
         end

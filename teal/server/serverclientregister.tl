@@ -1,5 +1,6 @@
 local type socket = require("socket")
 local type Frame = require("server.frame")
+local type SendableFrame = require("server.sendableframe")
 
 local record ServerClientRegister
     server: socket.Server
@@ -7,8 +8,8 @@ local record ServerClientRegister
     senders: {socket.Client}
     nextIndex: integer
     indexMap: {socket.Client:integer}
-    immediateMessageQueue: {socket.Client:{Frame}}
-    messageQueue: {socket.Client:{Frame}}
+    immediateMessageQueue: {socket.Client:{SendableFrame}}
+    messageQueue: {socket.Client:{SendableFrame}}
 end
 
 function ServerClientRegister:new(server: socket.Server): ServerClientRegister
@@ -35,11 +36,11 @@ function ServerClientRegister:addClient(client: socket.Client)
 end
 
 function ServerClientRegister:registerMessageToSend(recipient: socket.Client, message: Frame)
-    table.insert(self.messageQueue[recipient], message)
+    table.insert(self.messageQueue[recipient], message:getSendable())
 end
 
 function ServerClientRegister:registerMessageToSendImmediately(recipient: socket.Client, message: Frame)
-    table.insert(self.immediateMessageQueue[recipient], message)
+    table.insert(self.immediateMessageQueue[recipient], message:getSendable())
 end
 
 function ServerClientRegister:containsClient(client: socket.Client): boolean

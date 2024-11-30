@@ -1,4 +1,5 @@
 local type socket = require("socket")
+local type SendableFrame = require("server.sendableframe")
 
 local record Frame
     fin: boolean
@@ -119,7 +120,7 @@ function Frame:newPongFrame(payloadBytes: string): Frame
     return instance
 end
 
-function Frame:send(client: socket.Client)
+function Frame:getSendable(): SendableFrame
     local firstByte = self.opcode
     for i=6,4,-1 do
         if (self.rsv[7-i]) then
@@ -150,7 +151,7 @@ function Frame:send(client: socket.Client)
         end
     end
     binaryString = binaryString .. self.payloadBytes
-    client:send(binaryString)
+    return binaryString
 end
 
 return Frame
