@@ -1,4 +1,5 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
 /** @type {import('webpack').Configuration} */
@@ -33,6 +34,11 @@ const config = {
     plugins: [
         new HtmlWebpackPlugin({
             template: 'src/index.html'
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: 'src/assets/icon.png', to: 'assets/icon.png' },
+            ],
         }),
     ],
     experiments: {
