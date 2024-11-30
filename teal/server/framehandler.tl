@@ -3,20 +3,20 @@ local type ServerClientRegister = require('server.serverclientregister')
 local Frame = require("server.frame")
 
 local record FrameHandler
-    unfinishedFrame: Frame
+    unfinishedFrameLookup: {socket.Client:Frame}
     optable: {integer: function(FrameHandler, socket.Client, Frame, ServerClientRegister)}
     handleFrame: function(self: FrameHandler, client: socket.Client, frame: Frame, register: ServerClientRegister)
 end
 
-function FrameHandler:handleUnfinishedContinuationFrame(_: socket.Client, frame: Frame, _: ServerClientRegister)
+function FrameHandler:handleUnfinishedContinuationFrame(client: socket.Client, frame: Frame, _: ServerClientRegister)
     print("CONTINUATION FRAME.")
-    self.unfinishedFrame.payloadBytes = self.unfinishedFrame.payloadBytes .. frame.payloadBytes
+    self.unfinishedFrameLookup[client].payloadBytes = self.unfinishedFrameLookup[client].payloadBytes .. frame.payloadBytes
 end
 
 function FrameHandler:handleFinalContinuationFrame(client: socket.Client, frame: Frame, register: ServerClientRegister)
     print("FINAL CONTINUATION FRAME.")
-    local finishedFrame = self.unfinishedFrame
-    self.unfinishedFrame = nil
+    local finishedFrame = self.unfinishedFrameLookup[client]
+    self.unfinishedFrameLookup[client] = nil
     finishedFrame.payloadBytes = finishedFrame.payloadBytes .. frame.payloadBytes
     finishedFrame.fin = true
     self:handleFrame(client, finishedFrame, register)
@@ -26,9 +26,9 @@ function FrameHandler:onTextFrameParsed(_: socket.Client, frame: Frame, _: Serve
     print("TEXT FRAME. CONTENT:\n"..frame.stringContent)
 end
 
-function FrameHandler:handleUnfinishedTextFrame(_: socket.Client, frame: Frame, _: ServerClientRegister)
+function FrameHandler:handleUnfinishedTextFrame(client: socket.Client, frame: Frame, _: ServerClientRegister)
     print("UNFINISHED TEXT FRAME.")
-    self.unfinishedFrame = frame
+    self.unfinishedFrameLookup[client] = frame
 end
 
 function FrameHandler:handleFinalTextFrame(client: socket.Client, frame: Frame, register: ServerClientRegister)
@@ -44,9 +44,9 @@ function FrameHandler:onBinaryFrameParsed(_: socket.Client, frame: Frame, _: Ser
     print(printText)
 end
 
-function FrameHandler:handleUnfinishedBinaryFrame(_: socket.Client, frame: Frame, _: ServerClientRegister)
+function FrameHandler:handleUnfinishedBinaryFrame(client: socket.Client, frame: Frame, _: ServerClientRegister)
     print("UNFINISHED BINARY FRAME.")
-    self.unfinishedFrame = frame
+    self.unfinishedFrameLookup[client] = frame
 end
 
 function FrameHandler:handleFinalBinaryFrame(client: socket.Client, frame: Frame, register: ServerClientRegister)
@@ -113,6 +113,7 @@ function FrameHandler:new(instance: FrameHandler): FrameHandler
         [9] = function(self: FrameHandler, client: socket.Client, frame: Frame, register: ServerClientRegister) self:handlePingFrame(client, frame, register) end,
         [10] = function(self: FrameHandler, client: socket.Client, frame: Frame, register: ServerClientRegister) self:handlePongFrame(client, frame, register) end
     }
+    newInstance.unfinishedFrameLookup = {}
     return newInstance
 end
 
