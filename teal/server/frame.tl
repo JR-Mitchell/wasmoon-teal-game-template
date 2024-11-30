@@ -140,6 +140,30 @@ function Frame:newPongFrame(payloadBytes: string): Frame
     return instance
 end
 
+function Frame:newTextFrame(payloadBytes: string): Frame
+    local instance: Frame = {}
+    setmetatable(instance, {__index=Frame})
+    instance.fin = true
+    instance.rsv = {false, false, false}
+    instance.opcode = 1
+    instance.masked = false
+    instance.length = string.len(payloadBytes)
+    instance.payloadBytes = payloadBytes
+    return instance
+end
+
+function Frame:newCloseFrame(): Frame
+    local instance: Frame = {}
+    setmetatable(instance, {__index=Frame})
+    instance.fin = true
+    instance.rsv = {false, false, false}
+    instance.opcode = 8
+    instance.masked = false
+    instance.length = 0
+    instance.payloadBytes = ""
+    return instance
+end
+
 function Frame:getSendable(): SendableFrame
     local firstByte = self.opcode
     for i=6,4,-1 do

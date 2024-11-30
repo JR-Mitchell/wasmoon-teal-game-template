@@ -59,6 +59,11 @@ function Game:websocketOpened()
     self.socketOpen = true
 end
 
-function Game:websocketClosed()
+function Game:websocketClosed(code: integer, reason: string)
+    print("Websocket closed with code "..code..", reason: "..tostring(reason))
     self.socketOpen = false
+end
+
+function Game:websocketMessage(message: string)
+    print(message)
 end

@@ -73,8 +73,8 @@ function registerWebsocketCallbacks(triggerOpen) {
                 }
             }
             if (game["websocketClosed"] != undefined) {
-                websocket.onclose = function() {
-                    game.websocketClosed(game);
+                websocket.onclose = function(event) {
+                    game.websocketClosed(game, event.code, event.reason);
                 }
             }
             

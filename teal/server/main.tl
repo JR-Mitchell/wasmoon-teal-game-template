@@ -32,7 +32,15 @@ local pegasus = Pegasus:new({
     }
 })
 
-local frameHandler: FrameHandler = FrameHandler:new({})
+local frameHandler = FrameHandler:new({
+    onTextFrameParsed = function(_: FrameHandler, _: socket.Client, frame: Frame, register: ServerClientRegister)
+        print("TEXT FRAME. CONTENT:\n"..frame.stringContent)
+        if (string.find(frame.stringContent, "Position updated: x=%d+%.?%d*, y=%d+%.?%d*")) then
+            local broadcast = Frame:newTextFrame(frame.stringContent)
+            register:registerBroadcastToSend(broadcast)
+        end
+    end
+})
 local connectionHandler: ConnectionHandler = ConnectionHandler:new({
     onNewWebsocket = function(_: ConnectionHandler, client: socket.Client, register: ServerClientRegister)
         local pingFrame = Frame:newPingFrame()

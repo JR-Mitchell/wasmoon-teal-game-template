@@ -59,6 +59,28 @@ function ServerClientRegister:registerMessageToSendImmediately(recipient: socket
     table.insert(self.immediateMessageQueue[recipient], message:getSendable())
 end
 
+function ServerClientRegister:registerMessagesToSend(recipients: {socket.Client}, message: Frame)
+    local sendable = message:getSendable()
+    for _, recipient in ipairs(recipients) do
+        table.insert(self.messageQueue[recipient], sendable)
+    end
+end
+
+function ServerClientRegister:registerMessagesToSendImmediately(recipients: {socket.Client}, message: Frame)
+    local sendable = message:getSendable()
+    for _, recipient in ipairs(recipients) do
+        table.insert(self.immediateMessageQueue[recipient], sendable)
+    end
+end
+
+function ServerClientRegister:registerBroadcastToSend(message: Frame)
+    self:registerMessagesToSend(self.senders, message)
+end
+
+function ServerClientRegister:registerBroadcastToSendImmediately(message: Frame)
+    self:registerMessagesToSendImmediately(self.senders, message)
+end
+
 function ServerClientRegister:containsClient(client: socket.Client): boolean
     return not not self.indexMap[client]
 end
