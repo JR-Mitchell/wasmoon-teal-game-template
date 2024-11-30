@@ -3,6 +3,7 @@ local Files = require('pegasus.plugins.files')
 local Websocket = require('server.websocket')
 local mimetypes = require('mimetypes')
 local Handler = require('pegasus.handler')
+local Frame = require('server.frame')
 local FrameHandler = require('server.framehandler')
 local ConnectionHandler = require('server.connectionhandler')
 local ServerClientRegister = require('server.serverclientregister')
@@ -32,6 +33,12 @@ local pegasus = Pegasus:new({
 })
 
 local frameHandler: FrameHandler = FrameHandler:new({})
+local connectionHandler: ConnectionHandler = ConnectionHandler:new({
+    onNewWebsocket = function(_: ConnectionHandler, client: socket.Client, register: ServerClientRegister)
+        local pingFrame = Frame:newPingFrame()
+        register:registerMessageToSend(client, pingFrame)
+    end
+})
 
 pegasus.start = function(self: Pegasus)
     local handler = Handler:new(nil, self.location, self.plugins, self.log)
@@ -43,7 +50,7 @@ pegasus.start = function(self: Pegasus)
     print('Pegasus is up on ' .. ip .. ":".. port)
   
     while 1 do
-        ConnectionHandler:handleNext(self, handler, register, frameHandler)
+        connectionHandler:handleNext(self, handler, register, frameHandler)
     end
 end
 

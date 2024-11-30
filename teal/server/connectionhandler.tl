@@ -8,6 +8,10 @@ local Frame = require("server.frame")
 local record ConnectionHandler
 end
 
+function ConnectionHandler:onNewWebsocket(_: socket.Client, _: ServerClientRegister)
+    -- OVERRIDE
+end
+
 function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, register: ServerClientRegister, frameHandler: FrameHandler)
     local receivers, senders, err = socket.select(register.receivers, register.senders, 0)
     if not err then
@@ -29,6 +33,7 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                     if (register:containsClient(client)) then
                         print("Connection "..register.nextIndex.." converted to a websocket")
                         client:setoption("keepalive", true)
+                        self:onNewWebsocket(client, register)
                     else
                         print("Connection "..register.nextIndex.." completed and closed")
                     end
@@ -65,6 +70,12 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
         end
     end
     
+end
+
+function ConnectionHandler:new(instance: ConnectionHandler): ConnectionHandler
+    local newInstance = instance or {}
+    setmetatable(newInstance, {__index = ConnectionHandler})
+    return newInstance
 end
 
 return ConnectionHandler

@@ -108,6 +108,18 @@ function Frame:readNext(client: socket.Client): Frame
     return instance
 end
 
+function Frame:newPingFrame(payloadBytes: string): Frame
+    local instance: Frame = {}
+    setmetatable(instance, {__index=Frame})
+    instance.fin = true
+    instance.rsv = {false, false, false}
+    instance.opcode = 9
+    instance.masked = false
+    instance.payloadBytes = payloadBytes or ""
+    instance.length = string.len(instance.payloadBytes)
+    return instance
+end
+
 function Frame:newPongFrame(payloadBytes: string): Frame
     local instance: Frame = {}
     setmetatable(instance, {__index=Frame})
