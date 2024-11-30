@@ -1,5 +1,6 @@
 local type socket = require("socket")
 local type SendableFrame = require("server.sendableframe")
+local type ContainedError = require("containederror")
 
 local record Frame
     fin: boolean
@@ -24,6 +25,13 @@ local powerTwoTable <const> = {
     [7] = 128
 }
 
+local function sendError(errorString: string)
+    local contained: ContainedError = {
+        message = errorString
+    }
+    error(contained)
+end
+
 function Frame:setFirstByte(byte: integer)
     self.fin = (byte & powerTwoTable[7]) == powerTwoTable[7]
     self.rsv = {}
@@ -40,11 +48,11 @@ function Frame:setMaskedAndLength(byte: integer, client: socket.Client)
     self.length = byte % powerTwoTable[7]
     if (self.length == 126) then
         local nextTwoBytes, errorMessage = client:receive(2)
-        if (errorMessage ~= nil) then error(errorMessage) end
+        if (errorMessage ~= nil) then sendError(errorMessage) end
         self.length = string.byte(nextTwoBytes, 1) + 256 * string.byte(nextTwoBytes, 2)
     elseif (self.length == 127) then
         local nextFourBytes, errorMessage = client:receive(4)
-        if (errorMessage ~= nil) then error(errorMessage) end
+        if (errorMessage ~= nil) then sendError(errorMessage) end
         self.length = string.byte(nextFourBytes, 1) + 256 * (string.byte(nextFourBytes, 2) + 256 * (string.byte(nextFourBytes, 3) + 256 * string.byte(nextFourBytes, 4)))
     end
 end
@@ -90,7 +98,8 @@ function Frame:readNext(client: socket.Client): Frame
     local instance: Frame = {}
     setmetatable(instance, {__index=Frame})
     local firstTwoBytes, firstErrorMessage = client:receive(2)
-    if (firstErrorMessage ~= nil) then error(firstErrorMessage) end
+    print(firstErrorMessage)
+    if (firstErrorMessage ~= nil) then sendError(firstErrorMessage) end
     instance:setFirstByte(string.byte(firstTwoBytes, 1))
     instance:setMaskedAndLength(string.byte(firstTwoBytes, 2), client)
     local remainingByteCount = instance.length
@@ -98,7 +107,7 @@ function Frame:readNext(client: socket.Client): Frame
         remainingByteCount = remainingByteCount + 4
     end
     local remainingBytes, secondErrorMessage = client:receive(remainingByteCount)
-    if (secondErrorMessage ~= nil) then error(secondErrorMessage) end
+    if (secondErrorMessage ~= nil) then sendError(secondErrorMessage) end
     local contentIndex = 1
     if (instance.masked) then
         instance:setMask(remainingBytes)

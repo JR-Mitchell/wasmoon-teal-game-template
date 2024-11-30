@@ -2,6 +2,7 @@ local type Pegasus = require('pegasus')
 local type Handler = require('pegasus.handler')
 local type FrameHandler = require('server.framehandler')
 local type ServerClientRegister = require('server.serverclientregister')
+local type ContainedError = require("containederror")
 local socket = require("socket")
 local Frame = require("server.frame")
 
@@ -48,12 +49,21 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                         print("New frame received from connection "..index)
                         pcall(function() frameHandler:handleFrame(client, result, register) end)
                     else
-                        print("Error parsing frame from connection "..index..": "..tostring(result))
+                        local containedError = result as ContainedError
+                        if (containedError.message == "closed") then
+                            print("Connection "..index.." forcibly closed.")
+                            register:removeClient(client)
+                        else
+                            print("Error parsing frame from connection "..index..": "..containedError.message)
+                        end
                     end
 
                     -- Send immediate responses, e.g ping or pong
-                    for _, frame in ipairs(register.immediateMessageQueue[client]) do
-                        client:send(frame)
+                    local immediate = register.immediateMessageQueue[client]
+                    if (immediate ~= nil) then
+                       for _, frame in ipairs(immediate) do
+                          client:send(frame)
+                       end
                     end
                 end
             end
@@ -62,10 +72,12 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
             for _, client in ipairs(senders) do
                 local index = register.indexMap[client]
                 -- Send non-immediate responses, e.g broadcasts
-                for _, frame in ipairs(register.messageQueue[client]) do
-                    print("Sending frame to client "..tostring(index))
-                    client:send(frame)
-                end
+                if (index ~= nil) then
+                    for _, frame in ipairs(register.messageQueue[client]) do
+                       print("Sending frame to client " .. tostring(index))
+                       client:send(frame)
+                    end
+                 end
             end
         end
     end

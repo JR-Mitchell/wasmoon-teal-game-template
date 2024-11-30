@@ -35,6 +35,22 @@ function ServerClientRegister:addClient(client: socket.Client)
     self.nextIndex = self.nextIndex + 1
 end
 
+function ServerClientRegister:removeClient(client: socket.Client)
+    for i=#self.receivers,1,-1 do
+        if (self.receivers[i] == client) then
+            table.remove(self.receivers, i)
+        end
+    end
+    for i=#self.senders,1,-1 do
+        if (self.senders[i] == client) then
+            table.remove(self.senders, i)
+        end
+    end
+    self.messageQueue[client] = nil
+    self.immediateMessageQueue[client] = nil
+    self.indexMap[client] = nil
+end
+
 function ServerClientRegister:registerMessageToSend(recipient: socket.Client, message: Frame)
     table.insert(self.messageQueue[recipient], message:getSendable())
 end
