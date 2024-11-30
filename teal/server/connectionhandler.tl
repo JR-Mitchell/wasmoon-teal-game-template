@@ -64,6 +64,7 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                        for _, frame in ipairs(immediate) do
                           client:send(frame)
                        end
+                       register.immediateMessageQueue[client] = {}
                     end
                 end
             end
@@ -77,6 +78,7 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                        print("Sending frame to client " .. tostring(index))
                        client:send(frame)
                     end
+                    register.messageQueue[client] = {}
                  end
             end
         end

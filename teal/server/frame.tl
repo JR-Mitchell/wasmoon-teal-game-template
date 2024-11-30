@@ -98,7 +98,6 @@ function Frame:readNext(client: socket.Client): Frame
     local instance: Frame = {}
     setmetatable(instance, {__index=Frame})
     local firstTwoBytes, firstErrorMessage = client:receive(2)
-    print(firstErrorMessage)
     if (firstErrorMessage ~= nil) then sendError(firstErrorMessage) end
     instance:setFirstByte(string.byte(firstTwoBytes, 1))
     instance:setMaskedAndLength(string.byte(firstTwoBytes, 2), client)
