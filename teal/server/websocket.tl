@@ -43,12 +43,11 @@ function WebsocketPlugin:getPlugin(): Pegasus.Plugin
         local key = headers["sec-websocket-key"]
         if (key == nil) then return false end
         response:statusCode(101)
-        response:addHeader("Upgrade", "websocket,Websocket")
+        response:addHeader("Upgrade", "websocket")
         response:addHeader("Connection", "Upgrade,Keep-Alive,keep-alive")
         response:addHeader("Sec-WebSocket-Accept", getAcceptHeader(key))
         response:addHeader("Sec-Websocket-Protocol", "json")
         response:sendHeaders(true, '')
-        response:write("\r\n", true)
         -- Mark that this client has been transformed into a websocket
         self.register:addClient(request.client)
         return true
