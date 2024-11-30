@@ -19,7 +19,7 @@ Game.x = 300
 Game.y = 400
 Game.socketOpen = false
 
-Game.step = function(self: Game, dt: number)
+function Game:step(dt: number)
     local prevX = self.x
     local prevY = self.y
     if (self.keyStates["w"] and not self.keyStates["s"]) then
@@ -41,16 +41,16 @@ Game.step = function(self: Game, dt: number)
     end
 end
 
-Game.draw = function(self: Game)
+function Game:draw()
     Canvas.clearCanvas()
     Canvas.drawImage("guy.png", self.spriteIndex * 64, 0, 64, 64, self.x, self.y, 64, 64)
 end
 
-Game.keyUp = function(self: Game, key: string)
+function Game:keyUp(key: string)
     self.keyStates[key] = false
 end
 
-Game.keyPress = function(self: Game, key: string)
+function Game:keyPress(key: string)
     self.keyStates[key] = true
 end
 
