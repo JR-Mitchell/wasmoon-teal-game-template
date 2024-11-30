@@ -54,9 +54,12 @@ function FrameHandler:handleFinalBinaryFrame(client: socket.Client, frame: Frame
     self:onBinaryFrameParsed(client, frame, register)
 end
 
-function FrameHandler:handleCloseFrame(client: socket.Client, frame: Frame, register: ServerClientRegister)
-    -- TODO
+function FrameHandler:handleCloseFrame(client: socket.Client, _: Frame, register: ServerClientRegister)
     print("CLOSE FRAME.")
+    local index = register.indexMap[client]
+    print("Closing connection "..index)
+    register:removeClient(client)
+    client:close()
 end
 
 function FrameHandler:handlePingFrame(client: socket.Client, frame: Frame, register: ServerClientRegister)
@@ -66,12 +69,12 @@ function FrameHandler:handlePingFrame(client: socket.Client, frame: Frame, regis
     register:registerMessageToSendImmediately(client, pongFrame)
 end
 
-function FrameHandler:handlePongFrame(client: socket.Client, frame: Frame, register: ServerClientRegister)
+function FrameHandler:handlePongFrame(_: socket.Client, _: Frame, _: ServerClientRegister)
     -- TODO
     print("PONG FRAME.")
 end
 
-function FrameHandler:handleUnknownFrameType(client: socket.Client, frame: Frame, register: ServerClientRegister)
+function FrameHandler:handleUnknownFrameType(_: socket.Client, frame: Frame, _: ServerClientRegister)
     print("UNKNOWN FRAME OPCODE: "..tonumber(frame.opcode))
 end
 
