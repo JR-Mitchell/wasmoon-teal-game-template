@@ -1,4 +1,5 @@
 local type socket = require("socket")
+local type Frame = require("server.frame")
 
 local record ServerClientRegister
     server: socket.Server
@@ -6,6 +7,8 @@ local record ServerClientRegister
     senders: {socket.Client}
     nextIndex: integer
     indexMap: {socket.Client:integer}
+    immediateMessageQueue: {socket.Client:{Frame}}
+    messageQueue: {socket.Client:{Frame}}
 end
 
 function ServerClientRegister:new(server: socket.Server): ServerClientRegister
@@ -14,7 +17,9 @@ function ServerClientRegister:new(server: socket.Server): ServerClientRegister
         receivers = {server},
         senders = {},
         nextIndex = 1,
-        indexMap = {}
+        indexMap = {},
+        immediateMessageQueue = {},
+        messageQueue = {}
     }
     setmetatable(instance, {__index = ServerClientRegister})
     return instance
@@ -23,8 +28,18 @@ end
 function ServerClientRegister:addClient(client: socket.Client)
     table.insert(self.receivers, client)
     table.insert(self.senders, client)
+    self.messageQueue[client] = {}
+    self.immediateMessageQueue[client] = {}
     self.indexMap[client] = self.nextIndex
     self.nextIndex = self.nextIndex + 1
+end
+
+function ServerClientRegister:registerMessageToSend(recipient: socket.Client, message: Frame)
+    table.insert(self.messageQueue[recipient], message)
+end
+
+function ServerClientRegister:registerMessageToSendImmediately(recipient: socket.Client, message: Frame)
+    table.insert(self.immediateMessageQueue[recipient], message)
 end
 
 function ServerClientRegister:containsClient(client: socket.Client): boolean
