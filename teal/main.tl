@@ -66,4 +66,11 @@ end
 
 function Game:websocketMessage(message: string)
     print(message)
+    local _, _, x, y = string.find(message, "Position updated: x=(%d+%.?%d*), y=(%d+%.?%d*)")
+    print(x)
+    print(y)
+    if (x and y) then
+        self.x = tonumber(x)
+        self.y = tonumber(y)
+    end
 end
