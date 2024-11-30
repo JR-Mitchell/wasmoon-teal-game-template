@@ -14,7 +14,7 @@ global record Canvas
 end
 
 global record Socket
-    open: function()
+    open: function(subprotocol: string)
     send: function(data: string)
     close: function()
 end

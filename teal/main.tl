@@ -1,3 +1,5 @@
+local subprotocol = require("subprotocol")
+
 global record Game
     keyStates: {string:boolean}
     speed: number
@@ -18,6 +20,10 @@ Game.spriteIndex = 0
 Game.x = 300
 Game.y = 400
 Game.socketOpen = false
+
+function Game:init()
+    Socket.open(subprotocol)
+end
 
 function Game:step(dt: number)
     local prevX = self.x

@@ -8,6 +8,7 @@ local magicString <const> = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 -- Simply performs the websocket handshake over HTTP, and then passes the client to the server-client register.
 local record WebsocketHandshakePlugin
     path: string
+    subprotocol: string
     register: ServerClientRegister
 end
 
@@ -17,9 +18,10 @@ local function getAcceptHeader(key: string): string
     return base64.encode(byteString)
 end
 
-function WebsocketHandshakePlugin:new(path: string): WebsocketHandshakePlugin
+function WebsocketHandshakePlugin:new(path: string, subprotocol: string): WebsocketHandshakePlugin
     local newInstance: WebsocketHandshakePlugin = {}
     newInstance.path = path
+    newInstance.subprotocol = subprotocol
     setmetatable(newInstance, {__index = WebsocketHandshakePlugin})
     return newInstance
 end
@@ -47,7 +49,7 @@ function WebsocketHandshakePlugin:getPlugin(): Pegasus.Plugin
         response:addHeader("Upgrade", "websocket")
         response:addHeader("Connection", "Upgrade,Keep-Alive,keep-alive")
         response:addHeader("Sec-WebSocket-Accept", getAcceptHeader(key))
-        response:addHeader("Sec-Websocket-Protocol", "json")
+        response:addHeader("Sec-Websocket-Protocol", self.subprotocol)
         response:sendHeaders(true, '')
         -- Mark that this client has been transformed into a websocket
         self.register:addClient(request.client)

@@ -105,8 +105,8 @@ const CanvasCalls = {
 
 // Interface enabling Lua to interact with WebSockets
 const SocketCalls = {
-    open: function() {
-        websocket = new WebSocket(`ws://${window.location.host}/websocket`);
+    open: function(subprotocol) {
+        websocket = new WebSocket(`ws://${window.location.host}/websocket`, subprotocol);
         registerWebsocketCallbacks(false);
     },
 
@@ -124,6 +124,7 @@ const SocketCalls = {
 }
 
 function startGameLoop(game, lua) {
+    game.init();
     let previousTime = Date.now();
     function loop() {
         try {
@@ -156,6 +157,7 @@ async function execute() {
         const config = lua.global.get("config");
         // Initialise
         await initialise(config);
+
 
         // Set up canvas
         lua.global.set("Canvas", CanvasCalls);

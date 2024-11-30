@@ -8,6 +8,7 @@ local FrameHandler = require('server.websockets.frameHandler')
 local ConnectionHandler = require('server.websockets.connectionHandler')
 local ServerClientRegister = require('server.websockets.serverClientRegister')
 local socket = require("socket")
+local subprotocol = require("subprotocol")
 
 -- Patch the mimetypes.guess function to handle wasm
 local super = mimetypes.guess
@@ -19,7 +20,7 @@ mimetypes.guess = function(filename: string): string
 end
 
 -- This plugin allows the client to perform a websocket handshake
-local websocketHandshakePlugin = WebsocketHandshakePlugin:new("/websocket")
+local websocketHandshakePlugin = WebsocketHandshakePlugin:new("/websocket", subprotocol)
 
 -- Basic server setup
 local pegasus = Pegasus:new({

@@ -4,7 +4,8 @@ global config: Config = {
         "guy.png"
     },
     luaFilenames = {
-        "main.lua"
+        "main.lua",
+        "subprotocol.lua"
     },
     blankColour = "black",
     pageBackgroundColour = "powderblue",
@@ -12,5 +13,4 @@ global config: Config = {
     displayHeight = 1080,
     entryPoint = "main.lua"
 }
-Socket.open()
 print("Completed initialising...")
