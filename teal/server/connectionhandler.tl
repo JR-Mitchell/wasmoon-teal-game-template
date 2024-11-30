@@ -45,11 +45,23 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                     else
                         print("Error parsing frame from connection "..index..": "..tostring(result))
                     end
+
+                    -- Send immediate responses, e.g ping or pong
+                    for _, frame in ipairs(register.immediateMessageQueue[client]) do
+                        frame:send(client)
+                    end
                 end
             end
         end
         if senders then
-            -- TODO: send
+            for _, client in ipairs(senders) do
+                local index = register.indexMap[client]
+                -- Send non-immediate responses, e.g broadcasts
+                for _, frame in ipairs(register.messageQueue[client]) do
+                    print("Sending frame to client "..tostring(index))
+                    frame:send(client)
+                end
+            end
         end
     end
     

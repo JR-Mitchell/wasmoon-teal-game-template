@@ -119,4 +119,38 @@ function Frame:newPongFrame(payloadBytes: string): Frame
     return instance
 end
 
+function Frame:send(client: socket.Client)
+    local firstByte = self.opcode
+    for i=6,4,-1 do
+        if (self.rsv[7-i]) then
+            firstByte = firstByte + powerTwoTable[i]
+        end
+    end
+    if (self.fin) then
+        firstByte = firstByte + powerTwoTable[7]
+    end
+    local secondByte = self.length
+    if (self.length > 65535) then
+        secondByte = 127
+    elseif (self.length > 126) then
+        secondByte = 126
+    end
+    if (self.masked) then
+        secondByte = secondByte + powerTwoTable[7]
+    end
+    local binaryString = string.char(firstByte) .. string.char(secondByte)
+    if (self.length > 65535) then
+        binaryString = binaryString .. string.char(self.length % 256) .. string.char((self.length // 256) % 256) .. string.char((self.length // (256*256)) % 256) .. string.char(self.length // (256*256*256))
+    elseif (self.length > 126) then
+        binaryString = binaryString .. string.char(self.length % 256) .. string.char(self.length // 256)
+    end
+    if (self.masked) then
+        for i=1,4 do
+            binaryString = binaryString .. string.char(self.mask[i])
+        end
+    end
+    binaryString = binaryString .. self.payloadBytes
+    client:send(binaryString)
+end
+
 return Frame

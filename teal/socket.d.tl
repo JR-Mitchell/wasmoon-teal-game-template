@@ -7,6 +7,7 @@ local record luasocket
         getstats: function(self: Client): any
         getpeername: function(self: Client): string
         close: function(self: Client)
+        send: function(self: Client, data: string)
     end
 
     record Server
