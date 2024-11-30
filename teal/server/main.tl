@@ -37,12 +37,13 @@ pegasus.start = function(self: Pegasus)
     local handler = Handler:new(nil, self.location, self.plugins, self.log)
     local server = assert(socket.bind(self.host, self.port))
     local register = ServerClientRegister:new(server)
+    websocket:setRegister(register)
     local ip, port = server:getsockname()
   
     print('Pegasus is up on ' .. ip .. ":".. port)
   
     while 1 do
-        ConnectionHandler:handleNext(self, handler, register, frameHandler, websocket)
+        ConnectionHandler:handleNext(self, handler, register, frameHandler)
     end
 end
 

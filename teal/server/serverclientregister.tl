@@ -27,4 +27,8 @@ function ServerClientRegister:addClient(client: socket.Client)
     self.nextIndex = self.nextIndex + 1
 end
 
+function ServerClientRegister:containsClient(client: socket.Client): boolean
+    return not not self.indexMap[client]
+end
+
 return ServerClientRegister

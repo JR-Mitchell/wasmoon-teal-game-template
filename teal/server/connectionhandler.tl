@@ -1,6 +1,5 @@
 local type Pegasus = require('pegasus')
 local type Handler = require('pegasus.handler')
-local type WebsocketPlugin = require('server.websocket')
 local type FrameHandler = require('server.framehandler')
 local type ServerClientRegister = require('server.serverclientregister')
 local socket = require("socket")
@@ -9,7 +8,7 @@ local Frame = require("server.frame")
 local record ConnectionHandler
 end
 
-function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, register: ServerClientRegister, frameHandler: FrameHandler, websockets: WebsocketPlugin)
+function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, register: ServerClientRegister, frameHandler: FrameHandler)
     local receivers, senders, err = socket.select(register.receivers, register.senders, 0)
     if not err then
         if receivers then
@@ -27,15 +26,12 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                         print("Failed to accept connection "..register.nextIndex..": "..errmsg)
                     end
 
-                    if (websockets.clients[client]) then
+                    if (register:containsClient(client)) then
                         print("Connection "..register.nextIndex.." converted to a websocket")
-                        register:addClient(client)
-                        websockets.clients[client] = nil
                         client:setoption("keepalive", true)
                     else
                         print("Connection "..register.nextIndex.." completed and closed")
                     end
-                    print(client:getstats())
                 else
                     local client = receiver as socket.Client
                     local index = register.indexMap[client]

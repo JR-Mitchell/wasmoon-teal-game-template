@@ -1,5 +1,5 @@
 local type Pegasus = require('pegasus')
-local type socket = require('socket')
+local type ServerClientRegister = require('server.serverclientregister')
 local sha1 = require('sha1')
 local base64 = require('base64')
 
@@ -7,7 +7,7 @@ local magicString <const> = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 local record WebsocketPlugin
     path: string
-    clients: {socket.Client:boolean}
+    register: ServerClientRegister
 end
 
 local function getAcceptHeader(key: string): string
@@ -19,9 +19,12 @@ end
 function WebsocketPlugin:new(path: string): WebsocketPlugin
     local newInstance: WebsocketPlugin = {}
     newInstance.path = path
-    newInstance.clients = {}
     setmetatable(newInstance, {__index = WebsocketPlugin})
     return newInstance
+end
+
+function WebsocketPlugin:setRegister(register: ServerClientRegister)
+    self.register = register
 end
 
 function WebsocketPlugin:getPlugin(): Pegasus.Plugin
@@ -47,7 +50,7 @@ function WebsocketPlugin:getPlugin(): Pegasus.Plugin
         response:sendHeaders(true, '')
         response:write("\r\n", true)
         -- Mark that this client has been transformed into a websocket
-        self.clients[request.client] = true
+        self.register:addClient(request.client)
         return true
     end
     return plugin
