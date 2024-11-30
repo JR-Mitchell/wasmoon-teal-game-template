@@ -5,6 +5,7 @@ local mimetypes = require('mimetypes')
 local Handler = require('pegasus.handler')
 local FrameHandler = require('server.framehandler')
 local ConnectionHandler = require('server.connectionhandler')
+local ServerClientRegister = require('server.serverclientregister')
 local socket = require("socket")
 
 -- Patch the mimetypes.guess function to handle wasm
@@ -35,13 +36,13 @@ local frameHandler: FrameHandler = FrameHandler:new({})
 pegasus.start = function(self: Pegasus)
     local handler = Handler:new(nil, self.location, self.plugins, self.log)
     local server = assert(socket.bind(self.host, self.port))
-    local connectionHandler = ConnectionHandler:new(server, frameHandler)
+    local register = ServerClientRegister:new(server)
     local ip, port = server:getsockname()
   
     print('Pegasus is up on ' .. ip .. ":".. port)
   
     while 1 do
-        connectionHandler:handleNext(self, handler, websocket)
+        ConnectionHandler:handleNext(self, handler, register, frameHandler, websocket)
     end
 end
 

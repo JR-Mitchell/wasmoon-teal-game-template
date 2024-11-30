@@ -2,71 +2,50 @@ local type Pegasus = require('pegasus')
 local type Handler = require('pegasus.handler')
 local type WebsocketPlugin = require('server.websocket')
 local type FrameHandler = require('server.framehandler')
+local type ServerClientRegister = require('server.serverclientregister')
 local socket = require("socket")
 local Frame = require("server.frame")
 
 local record ConnectionHandler
-    server: socket.Server
-    receivers: {any}
-    senders: {socket.Client}
-    nextIndex: integer
-    indexMap: {socket.Client:integer}
-    frameHandler: FrameHandler
 end
 
-function ConnectionHandler:new(server: socket.Server, frameHandler: FrameHandler): ConnectionHandler
-    local instance: ConnectionHandler = {
-        server = server,
-        receivers = {server},
-        senders = {},
-        nextIndex = 1,
-        indexMap = {},
-        frameHandler = frameHandler
-    }
-    setmetatable(instance, {__index = ConnectionHandler})
-    return instance
-end
-
-function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, websockets: WebsocketPlugin)
-    local receivers, senders, err = socket.select(self.receivers, self.senders, 0)
+function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, register: ServerClientRegister, frameHandler: FrameHandler, websockets: WebsocketPlugin)
+    local receivers, senders, err = socket.select(register.receivers, register.senders, 0)
     if not err then
         if receivers then
             for _, receiver in ipairs(receivers) do
-                if (receiver == self.server) then
+                if (receiver == register.server) then
                     print("New connection available")
-                    local client, errmsg = self.server:accept()
+                    local client, errmsg = register.server:accept()
     
                     if client then
                         local wrappedClient: socket = {}
                         setmetatable(wrappedClient, {__index = client})
                         client:settimeout(pegasus.timeout, 'b')
-                        handler:processRequest(pegasus.port, client, self.server)
+                        handler:processRequest(pegasus.port, client, register.server)
                     elseif errmsg ~= "timeout" then
-                        print("Failed to accept connection "..self.nextIndex..": "..errmsg)
+                        print("Failed to accept connection "..register.nextIndex..": "..errmsg)
                     end
 
                     if (websockets.clients[client]) then
-                        print("Connection "..self.nextIndex.." converted to a websocket")
-                        table.insert(self.receivers, client)
-                        table.insert(self.senders, client)
-                        self.indexMap[client] = self.nextIndex
-                        self.nextIndex = self.nextIndex + 1
+                        print("Connection "..register.nextIndex.." converted to a websocket")
+                        register:addClient(client)
                         websockets.clients[client] = nil
                         client:setoption("keepalive", true)
                     else
-                        print("Connection "..self.nextIndex.." completed and closed")
+                        print("Connection "..register.nextIndex.." completed and closed")
                     end
                     print(client:getstats())
                 else
                     local client = receiver as socket.Client
-                    local index = self.indexMap[client]
+                    local index = register.indexMap[client]
                     local status, result = pcall(function(): Frame
                         local frame = Frame:readNext(client)
                         return frame
                     end)
                     if (status) then
                         print("New frame received from connection "..index)
-                        pcall(function() self.frameHandler:handleFrame(result) end)
+                        pcall(function() frameHandler:handleFrame(result) end)
                     else
                         print("Error parsing frame from connection "..index..": "..tostring(result))
                     end
