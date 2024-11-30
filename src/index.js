@@ -56,8 +56,8 @@ function registerWebsocketCallbacks(triggerOpen) {
     if (websocket) {
         if (game) {
             if (game["websocketMessage"] != undefined) {
-                websocket.onMessage = function(content) {
-                    game.websocketMessage(game, content);
+                websocket.onmessage = function(event) {
+                    game.websocketMessage(game, event.data);
                 }
             }
             if (game["websocketOpened"] != undefined) {
