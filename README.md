@@ -23,7 +23,7 @@ cd wasmoon-teal-game-template
 tl build
 npm i
 npm run build
-lua server/main.lua
+tl run teal/server/main.tl
 ```
 
 ### Rebuilding
@@ -39,7 +39,7 @@ Run these two commands *separately*, either in different terminal windows, using
 npm start
 ```
 ```sh
-lua server/main.lua
+tl run teal/server/main.tl
 ```
 Then make your changes to the game code, and just run `tl build` every time you want to recompile.
 Note that if you make changes to the *server* code, you'll have to kill the server process and restart it.
