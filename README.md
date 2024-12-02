@@ -10,6 +10,7 @@ A proof of concept / template for using Wasmoon and Teal to make a game that run
 
 ### Lua requirements (installed using luarocks)
 - [teal](https://github.com/teal-language/tl)
+- [cyan](https://github.com/teal-language/cyan)
 - [pegasus](https://github.com/EvandroLG/pegasus.lua)
 - [sha1](https://github.com/mpeterv/sha1)
 - [base64](https://github.com/iskolbin/lbase64)
@@ -20,7 +21,7 @@ Assuming all of the requirements are properly installed, then the following shou
 ```sh
 git clone git@github.com:JR-Mitchell/wasmoon-teal-game-template.git
 cd wasmoon-teal-game-template
-tl build
+cyan build
 npm i
 npm run build
 tl run teal/server/main.tl
@@ -29,7 +30,7 @@ tl run teal/server/main.tl
 ### Rebuilding
 To rebuild, simply run:
 ```sh
-tl build
+cyan build
 npm run build
 ```
 
