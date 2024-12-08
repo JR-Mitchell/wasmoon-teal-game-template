@@ -12,6 +12,8 @@ const factory = new LuaFactory(wasmFile);
 const initFilename = "init.lua"
 var blankColour = "white"
 var imageMap = new Map();
+var websocket;
+var game;
 
 function prefetchImage(path) {
     async function fetchFile() {
@@ -50,6 +52,41 @@ async function initialise(config) {
     await Promise.all(prefetchArray);
 };
 
+function registerWebsocketCallbacks(triggerOpen) {
+    if (websocket) {
+        if (game) {
+            if (game["websocketMessage"] != undefined) {
+                websocket.onmessage = function(event) {
+                    game.websocketMessage(game, event.data);
+                }
+            }
+            if (game["websocketOpened"] != undefined) {
+                console.log("a")
+                console.log(websocket.readyState)
+                if (triggerOpen && websocket.readyState == WebSocket.OPEN) {
+                    console.log("b")
+                    game.websocketOpened(game);
+                }
+                websocket.onopen = function() {
+                    console.log("c")
+                    game.websocketOpened(game);
+                }
+            }
+            if (game["websocketClosed"] != undefined) {
+                websocket.onclose = function(event) {
+                    game.websocketClosed(game, event.code, event.reason);
+                }
+            }
+            
+            if (game["websocketError"] != undefined) {
+                websocket.onerror = function() {
+                    game.websocketError(game);
+                }
+            }
+        }
+    }
+};
+
 // Interface enabling Lua to draw to canvas
 const CanvasCalls = {
     clearCanvas: function() {
@@ -66,7 +103,28 @@ const CanvasCalls = {
     }
 };
 
+// Interface enabling Lua to interact with WebSockets
+const SocketCalls = {
+    open: function(subprotocol) {
+        websocket = new WebSocket(`ws://${window.location.host}/websocket`, subprotocol);
+        registerWebsocketCallbacks(false);
+    },
+
+    send: function(data) {
+        if (websocket) {
+            websocket.send(data)
+        }
+    },
+
+    close: function() {
+        if (websocket) {
+            websocket.close()
+        }
+    }
+}
+
 function startGameLoop(game, lua) {
+    game.init();
     let previousTime = Date.now();
     function loop() {
         try {
@@ -89,6 +147,8 @@ async function execute() {
     const lua = await factory.createEngine();
 
     try {
+        // Set up websocket calls
+        lua.global.set("Socket", SocketCalls);
         // First load the init file
         await prefetchLuaFile(initFilename);
         // Then execute it
@@ -98,6 +158,7 @@ async function execute() {
         // Initialise
         await initialise(config);
 
+
         // Set up canvas
         lua.global.set("Canvas", CanvasCalls);
 
@@ -105,7 +166,7 @@ async function execute() {
         await lua.doFile(config.entryPoint);
 
         // Get the game hook
-        const game = lua.global.get("Game");
+        game = lua.global.get("Game");
 
         // Set up any listeners
         if (game["keyUp"] != undefined) {
@@ -125,6 +186,8 @@ async function execute() {
                 game.keyPress(game, event.key);
             });
         }
+
+        registerWebsocketCallbacks(true);
 
         // Start the game loop
         startGameLoop(game, lua)

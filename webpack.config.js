@@ -37,7 +37,7 @@ const config = {
         }),
         new CopyWebpackPlugin({
             patterns: [
-                { from: 'src/assets/server', to: '../server' },
+                { from: 'src/assets/icon.png', to: 'assets/icon.png' },
             ],
         }),
     ],

@@ -4,7 +4,8 @@ global config: Config = {
         "guy.png"
     },
     luaFilenames = {
-        "main.lua"
+        "main.lua",
+        "subprotocol.lua"
     },
     blankColour = "black",
     pageBackgroundColour = "powderblue",

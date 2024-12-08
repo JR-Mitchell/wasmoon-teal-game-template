@@ -1,9 +1,12 @@
+local subprotocol = require("subprotocol")
+
 global record Game
     keyStates: {string:boolean}
     speed: number
     spriteIndex: integer
     x: number
     y: number
+    socketOpen: boolean
     step: function(self: Game, dt: number)
     draw: function(self: Game)
     keyUp: function(self: Game, key: string)
@@ -16,8 +19,15 @@ Game.speed = 0.5
 Game.spriteIndex = 0
 Game.x = 300
 Game.y = 400
+Game.socketOpen = false
 
-Game.step = function(self: Game, dt: number)
+function Game:init()
+    Socket.open(subprotocol)
+end
+
+function Game:step(dt: number)
+    local prevX = self.x
+    local prevY = self.y
     if (self.keyStates["w"] and not self.keyStates["s"]) then
         self.y = self.y - self.speed * dt
     end
@@ -32,17 +42,41 @@ Game.step = function(self: Game, dt: number)
         self.spriteIndex = 1
         self.x = self.x + self.speed * dt
     end
+    if (self.socketOpen and (self.x ~= prevX or self.y ~= prevY)) then
+        Socket.send("Position updated: x="..tostring(self.x)..", y="..tostring(self.y))
+    end
 end
 
-Game.draw = function(self: Game)
+function Game:draw()
     Canvas.clearCanvas()
     Canvas.drawImage("guy.png", self.spriteIndex * 64, 0, 64, 64, self.x, self.y, 64, 64)
 end
 
-Game.keyUp = function(self: Game, key: string)
+function Game:keyUp(key: string)
     self.keyStates[key] = false
 end
 
-Game.keyPress = function(self: Game, key: string)
+function Game:keyPress(key: string)
     self.keyStates[key] = true
+end
+
+function Game:websocketOpened()
+    Socket.send("Hello World!")
+    self.socketOpen = true
+end
+
+function Game:websocketClosed(code: integer, reason: string)
+    print("Websocket closed with code "..code..", reason: "..tostring(reason))
+    self.socketOpen = false
+end
+
+function Game:websocketMessage(message: string)
+    print(message)
+    local _, _, x, y = string.find(message, "Position updated: x=(%d+%.?%d*), y=(%d+%.?%d*)")
+    print(x)
+    print(y)
+    if (x and y) then
+        self.x = tonumber(x)
+        self.y = tonumber(y)
+    end
 end
