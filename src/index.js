@@ -17,7 +17,7 @@ var game;
 
 function prefetchImage(path) {
     async function fetchFile() {
-        const url = require("./assets/"+path);
+        const url = new URL("assets/"+path, window.location.origin);
         let blob = await fetch(url).then(r => r.blob());
         const bmp = await createImageBitmap(blob);
         imageMap.set(path, bmp);
@@ -28,7 +28,8 @@ function prefetchImage(path) {
 
 function prefetchLuaFile(path) {
     async function fetchFile() {
-        const rawText = require("./assets/"+path);
+        const url = new URL("assets/"+path, window.location.origin);
+        let rawText = await fetch(url).then(r => r.text());
         await factory.mountFile(path, rawText);
     };
 
