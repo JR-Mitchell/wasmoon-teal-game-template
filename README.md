@@ -21,26 +21,12 @@ Assuming all of the requirements are properly installed, then the following shou
 ```sh
 git clone git@github.com:JR-Mitchell/wasmoon-teal-game-template.git
 cd wasmoon-teal-game-template
-tl build
 npm i
-npm run build
-tl run teal/server/main.tl
-```
-
-### Rebuilding
-To rebuild, simply run:
-```sh
-tl build
-npm run build
-```
-
-### Dev server
-Run these two commands *separately*, either in different terminal windows, using `screen` (or a similar utility), or just use an `&` at the end of each and remember to kill the processes once you're done:
-```sh
 npm start
 ```
-```sh
-tl run teal/server/main.tl
-```
-Then make your changes to the game code, and just run `tl build` every time you want to recompile.
-Note that if you make changes to the *server* code, you'll have to kill the server process and restart it.
+
+### Commands
+- `npm run copy` will copy all necessary assets from `src/assets` to `dist/assets`.
+- `npm run build` will rebuild all javascript and teal, and copy everything over to `dist`.
+- `npm run run` will run the server without rebuilding or copying anything.
+- `npm start` builds and copies everything, and then runs the server.
