@@ -6,7 +6,7 @@
     "wasmoon": "1.15.0"
   },
   "scripts": {
-    "copy": "cp -r src/assets dist/",
+    "copy": "if [ ! -d dist/assets ]; then mkdir dist/assets; fi; tl run teal/build/copy.tl",
     "build": "tl build && esbuild src/index.js --bundle --platform=node --loader:.wasm=file --outfile=dist/index.js && npm run copy",
     "run": "tl run teal/server/main.tl",
     "start": "npm run build && npm run run"
