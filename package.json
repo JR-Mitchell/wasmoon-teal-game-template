@@ -1,24 +1,23 @@
 {
-  "name": "try-lua",
+  "name": "wasmoon-teal-game-template",
   "main": "src/index.js",
   "devDependencies": {
-    "copy-webpack-plugin": "11.0.0",
-    "html-webpack-plugin": "5.5.0",
-    "wasmoon": "1.15.0",
-    "webpack": "^5.96.1",
-    "webpack-cli": "5.0.1"
+    "esbuild": "0.24.0",
+    "wasmoon": "1.15.0"
   },
   "scripts": {
-    "start": "webpack --mode=development --watch --progress",
-    "build": "webpack --mode=production"
+    "copy": "if [ ! -d dist/assets ]; then mkdir dist/assets; fi; tl run teal/build/copy.tl",
+    "build": "tl build && esbuild src/index.js --bundle --platform=node --loader:.wasm=file --outfile=dist/index.js && npm run copy",
+    "run": "tl run teal/server/main.tl",
+    "start": "npm run build && npm run run"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ceifa/try-lua.git"
+    "url": "git+https://github.com/JR-Mitchell/wasmoon-teal-game-template.git"
   },
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "bugs": {
-    "url": "https://github.com/ceifa/try-lua/issues"
+    "url": "https://github.com/JR-Mitchell/wasmoon-teal-game-template/issues"
   },
-  "homepage": "https://github.com/ceifa/try-lua#readme"
+  "homepage": "https://github.com/JR-Mitchell/wasmoon-teal-game-template#readme"
 }
