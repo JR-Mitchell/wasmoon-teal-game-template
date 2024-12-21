@@ -14,6 +14,10 @@ local record Frame
     binaryContent: {integer}
 end
 
+local FrameMetatable: metatable<Frame> = {
+    __index = Frame
+}
+
 local powerTwoTable <const> = {
     [0] = 1,
     [1] = 2,
@@ -96,7 +100,7 @@ end
 
 function Frame:readNext(client: socket.Client): Frame
     local instance: Frame = {}
-    setmetatable(instance, {__index=Frame})
+    setmetatable(instance, FrameMetatable)
     local firstTwoBytes, firstErrorMessage = client:receive(2)
     if (firstErrorMessage ~= nil) then sendError(firstErrorMessage) end
     instance:setFirstByte(string.byte(firstTwoBytes, 1))
@@ -118,7 +122,7 @@ end
 
 function Frame:newPingFrame(payloadBytes: string): Frame
     local instance: Frame = {}
-    setmetatable(instance, {__index=Frame})
+    setmetatable(instance, FrameMetatable)
     instance.fin = true
     instance.rsv = {false, false, false}
     instance.opcode = 9
@@ -130,7 +134,7 @@ end
 
 function Frame:newPongFrame(payloadBytes: string): Frame
     local instance: Frame = {}
-    setmetatable(instance, {__index=Frame})
+    setmetatable(instance, FrameMetatable)
     instance.fin = true
     instance.rsv = {false, false, false}
     instance.opcode = 10
@@ -142,7 +146,7 @@ end
 
 function Frame:newTextFrame(payloadBytes: string): Frame
     local instance: Frame = {}
-    setmetatable(instance, {__index=Frame})
+    setmetatable(instance, FrameMetatable)
     instance.fin = true
     instance.rsv = {false, false, false}
     instance.opcode = 1
@@ -154,7 +158,7 @@ end
 
 function Frame:newCloseFrame(): Frame
     local instance: Frame = {}
-    setmetatable(instance, {__index=Frame})
+    setmetatable(instance, FrameMetatable)
     instance.fin = true
     instance.rsv = {false, false, false}
     instance.opcode = 8
