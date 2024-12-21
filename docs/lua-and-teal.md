@@ -288,4 +288,120 @@ print(first:cross(second)) -- prints "{ x: 24, y: -8 }"
 ```
 
 ## Teal
-TODO
+Teal is a typed dialect to Lua.
+Writing in Teal increases the type safety of your written code, and the Teal source can then be compiled down to Lua.
+The best documentation for Teal can be found [in the `tl` repo](https://github.com/teal-language/tl/blob/master/docs/tutorial.md), however some key points are covered below:
+
+### Functions
+The type of each parameter and return value is declared when the function is written:
+```lua
+local function add(first: number, second: number): number
+    return first + second
+end
+```
+The Teal compiler ensures that the function is not called with arguments of the wrong type, and that the return values are assigned or used correctly.
+
+Functions can also be used as types, such as in this example:
+```lua
+local function getCallback(name: string): function(): string
+    return function()
+        return name
+    end
+end
+```
+
+### Arrays and Maps
+Array types are declared like:
+```lua
+local myArrayTable: {string} = {
+    "hello",
+    "hi"
+}
+```
+
+and simple maps like:
+```lua
+local myStringToIntMap: {string:integer} = {
+    x = 0,
+    y = 0,
+    id = 3
+}
+```
+
+### Records
+A record is a declaration of a table that maps specific keys to specific types:
+```lua
+local record NameCollection
+    names: {string}
+end
+```
+
+Declaring a record creates an empty table, but a record can also be used as a type, to ensure conformance to the typing of its keys and values:
+```lua
+local myNameCollection: NameCollection = {
+    names = {}
+}
+```
+
+Note that all fields in a record are considered optional - so the following will also compile:
+
+```lua
+local myNameCollection: NameCollection = {}
+```
+
+Functions and methods on a record may be declared outside of the initial record declaration, as long as they are in the same file.
+These functions will be added to the empty table created by the record declaration.
+The `metatable` type can also be used to define metatables for a record type.
+
+```lua
+local record NameCollection
+    names: {string}
+end
+
+local NameCollectionMetatable: metatable<NameCollection> = {
+    __index = NameCollection
+}
+
+function NameCollection:addName(name)
+    table.insert(self.names, name)
+end
+
+function NameCollection:printNames()
+    for _,name in ipairs(self.names) do
+        print(name)
+    end
+end
+
+function NameCollection.randomName(): string
+    return "If you named your child "..tostring(math.random())..", it would certainly be considered a very random name"
+end
+
+function NameCollection.new(): NameCollection
+    local newInstance = {}
+    setmetatable(new, NameCollectionMetatable)
+    return newInstance
+end
+```
+
+and these can then be called directly on the record:
+```lua
+local myNameCollection = NameCollection.new()
+myNameCollection:addName("Xerxes")
+```
+
+In this way, a file can export a single record, and it can behave either like a singleton, or like a class (if it provides methods and a constructor-like function).
+
+### Using Lua code in Teal code
+#### Required code
+You can `require` Lua libraries into your Teal code.
+In order to do this, you need to give Teal the type information for the library.
+Create a `.d.tl` file for defining the types in the library.
+In this file, create a `record` which provides all of the fields and functions returned by the library, and then return it.
+This provides type information for Teal to use to check that you are using the library correctly.
+You only need to declare the fields in this record that you're currently using.
+Then, you just require the library as per normal.
+
+#### Global code
+Sometimes, the interpreter of the Lua code may set up some global libraries which are not explicitly `require`d.
+For instance, `wasmoon` allows you to pass JavaScript objects to the Lua interpreter via `lua.global.set`.
+In this project, these types are declared in the `global-defs.d.tl` file.
