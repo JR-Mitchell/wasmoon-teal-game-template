@@ -9,6 +9,10 @@ local Frame = require("server.websockets.frame")
 local record ConnectionHandler
 end
 
+local ConnectionHandlerMetatable: metatable<ConnectionHandler> = {
+    __index = ConnectionHandler
+}
+
 function ConnectionHandler:onNewWebsocket(_: socket.Client, _: ServerClientRegister)
     -- OVERRIDE
 end
@@ -23,8 +27,6 @@ function ConnectionHandler:handleNext(pegasus: Pegasus, handler: Handler, regist
                     local client, errmsg = register.server:accept()
     
                     if client then
-                        local wrappedClient: socket = {}
-                        setmetatable(wrappedClient, {__index = client})
                         client:settimeout(pegasus.timeout, 'b')
                         handler:processRequest(pegasus.port, client, register.server)
                     elseif errmsg ~= "timeout" then
@@ -88,7 +90,7 @@ end
 
 function ConnectionHandler:new(instance: ConnectionHandler): ConnectionHandler
     local newInstance = instance or {}
-    setmetatable(newInstance, {__index = ConnectionHandler})
+    setmetatable(newInstance, ConnectionHandlerMetatable)
     return newInstance
 end
 

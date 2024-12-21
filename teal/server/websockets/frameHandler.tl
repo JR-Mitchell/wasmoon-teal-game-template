@@ -8,6 +8,10 @@ local record FrameHandler
     handleFrame: function(self: FrameHandler, client: socket.Client, frame: Frame, register: ServerClientRegister)
 end
 
+local FrameHandlerMetatable: metatable<FrameHandler> = {
+    __index = FrameHandler
+}
+
 function FrameHandler:handleUnfinishedContinuationFrame(client: socket.Client, frame: Frame, _: ServerClientRegister)
     print("CONTINUATION FRAME.")
     self.unfinishedFrameLookup[client].payloadBytes = self.unfinishedFrameLookup[client].payloadBytes .. frame.payloadBytes
@@ -89,7 +93,7 @@ end
 
 function FrameHandler:new(instance: FrameHandler): FrameHandler
     local newInstance = instance or {}
-    setmetatable(newInstance, {__index = FrameHandler})
+    setmetatable(newInstance, FrameHandlerMetatable)
     newInstance.optable = newInstance.optable or {
         [0] = function(self: FrameHandler, client: socket.Client, frame: Frame, register: ServerClientRegister)
             if (frame.fin) then

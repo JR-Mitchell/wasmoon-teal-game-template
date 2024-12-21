@@ -12,6 +12,10 @@ local record WebsocketHandshakePlugin
     register: ServerClientRegister
 end
 
+local WebsocketHandshakePluginMetatable: metatable<WebsocketHandshakePlugin> = {
+    __index = WebsocketHandshakePlugin
+}
+
 local function getAcceptHeader(key: string): string
     local keyConcat = key..magicString
     local byteString = sha1.binary(keyConcat)
@@ -22,7 +26,7 @@ function WebsocketHandshakePlugin:new(path: string, subprotocol: string): Websoc
     local newInstance: WebsocketHandshakePlugin = {}
     newInstance.path = path
     newInstance.subprotocol = subprotocol
-    setmetatable(newInstance, {__index = WebsocketHandshakePlugin})
+    setmetatable(newInstance, WebsocketHandshakePluginMetatable)
     return newInstance
 end
 
