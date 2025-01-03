@@ -80,3 +80,9 @@ function Game:websocketMessage(message: string)
         self.y = tonumber(y)
     end
 end
+
+function Game:onClick(x: number, y: number)
+    self.x = x - 32 -- account for sprite width
+    self.y = y - 32
+    Socket.send("Position updated: x="..tostring(self.x)..", y="..tostring(self.y))
+end
