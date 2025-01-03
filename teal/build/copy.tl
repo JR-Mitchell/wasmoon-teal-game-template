@@ -27,3 +27,6 @@ copyFileToAssets("init.lua")
 
 -- Icon for the webpage; not actually used in the game
 copyFileToAssets("icon.png")
+
+-- HTML page
+copyFile("src/index.html", "dist/index.html")
