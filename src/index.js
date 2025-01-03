@@ -4,6 +4,7 @@ import { LuaFactory } from 'wasmoon';
 // Get the canvas to draw on
 const canvasElement = document.getElementById("canvas");
 const canvas = canvasElement.getContext('2d');
+const canvasStyle = window.getComputedStyle(canvasElement, null);
 
 // Create a new factory
 const factory = new LuaFactory(wasmFile);
@@ -14,6 +15,28 @@ var blankColour = "white"
 var imageMap = new Map();
 var websocket;
 var game;
+
+function transformPointToCanvas(x,y) {
+    const offsetWidthMinusPadding = canvasElement.offsetWidth - parseInt(canvasStyle.paddingLeft) - parseInt(canvasStyle.paddingRight);
+    const offsetHeightMinusPadding = canvasElement.offsetHeight - parseInt(canvasStyle.paddingTop) - parseInt(canvasStyle.paddingBottom);
+    const xScale = offsetWidthMinusPadding / canvasElement.width;
+    const yScale = offsetHeightMinusPadding / canvasElement.height;
+    var scale = xScale;
+    var topOffset = canvasElement.offsetTop + canvasElement.clientTop + parseInt(canvasStyle.paddingTop);
+    var leftOffset = canvasElement.offsetLeft + canvasElement.clientLeft + parseInt(canvasStyle.paddingLeft);
+    if (xScale > yScale) {
+        scale = yScale;
+        const actualWidth = offsetWidthMinusPadding * yScale / xScale;
+        leftOffset += (offsetWidthMinusPadding - actualWidth) / 2;
+    } else if (yScale > xScale) {
+        const actualHeight = offsetHeightMinusPadding * xScale / yScale;
+        topOffset += (offsetHeightMinusPadding - actualHeight) / 2;
+    }
+    return [
+        (x - leftOffset) / scale,
+        (y - topOffset) / scale
+    ];
+}
 
 function prefetchImage(path) {
     async function fetchFile() {
@@ -185,6 +208,16 @@ async function execute() {
         if (game["keyPress"] != undefined) {
             document.addEventListener('keypress', (event) => {
                 game.keyPress(game, event.key);
+            });
+        }
+
+        if (game["onClick"] != undefined) {
+            canvasElement.addEventListener('click', (event) => {
+                let x,y;
+                [x,y] = transformPointToCanvas(event.pageX, event.pageY);
+                if (x >= 0 && x <= canvasElement.width && y >= 0 && y <= canvasElement.height) {
+                    game.onClick(game, x, y);
+                }
             });
         }
 
