@@ -1,20 +1,21 @@
 local subprotocol = require("shared.subprotocol")
+local Background = require("game.background")
 
 global record Game
     keyStates: {string:boolean}
     speed: number
-    bgCanvas: Canvas.SubCanvas
+    background: Background
     spriteCanvas: Canvas.SubCanvas
     spriteIndex: integer
     prevSpriteIndex: integer
     x: number
     y: number
     socketOpen: boolean
-    step: function(self: Game, dt: number)
-    draw: function(self: Game)
-    keyUp: function(self: Game, key: string)
-    keyDown: function(self: Game, key: string)
-    keyPress: function(self: Game, key: string)
+    step: function(dt: number)
+    draw: function()
+    keyUp: function(key: string)
+    keyDown: function(key: string)
+    keyPress: function(key: string)
 end
 
 Game.keyStates = {}
@@ -24,80 +25,75 @@ Game.x = 300
 Game.y = 400
 Game.socketOpen = false
 
-function Game:init()
+function Game.init()
     Socket.open(subprotocol)
-    self.bgCanvas = Canvas.newCanvas(false)
-    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 0, 888, 64, 64)
-    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 0, 952, 64, 64)
-    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 0, 1016, 64, 64)
-    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 64, 1016, 64, 64)
-    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 1856, 1016, 64, 64)
-    self.spriteCanvas = Canvas.newCanvas(true)
+    Game.spriteCanvas = Canvas.newCanvas(true)
+    Game.background = Background.new()
 end
 
-function Game:step(dt: number)
-    local prevX = self.x
-    local prevY = self.y
-    if (self.keyStates["w"] and not self.keyStates["s"]) then
-        self.y = self.y - self.speed * dt
+function Game.step(dt: number)
+    local prevX = Game.x
+    local prevY = Game.y
+    if (Game.keyStates["w"] and not Game.keyStates["s"]) then
+        Game.y = Game.y - Game.speed * dt
     end
-    if (self.keyStates["a"] and not self.keyStates["d"]) then
-        self.spriteIndex = 0
-        self.x = self.x - self.speed * dt
+    if (Game.keyStates["a"] and not Game.keyStates["d"]) then
+        Game.spriteIndex = 0
+        Game.x = Game.x - Game.speed * dt
     end
-    if (self.keyStates["s"] and not self.keyStates["w"]) then
-        self.y = self.y + self.speed * dt
+    if (Game.keyStates["s"] and not Game.keyStates["w"]) then
+        Game.y = Game.y + Game.speed * dt
     end
-    if (self.keyStates["d"] and not self.keyStates["a"]) then
-        self.spriteIndex = 1
-        self.x = self.x + self.speed * dt
+    if (Game.keyStates["d"] and not Game.keyStates["a"]) then
+        Game.spriteIndex = 1
+        Game.x = Game.x + Game.speed * dt
     end
-    if (self.socketOpen and (self.x ~= prevX or self.y ~= prevY)) then
-        Socket.send("Position updated: x="..tostring(self.x)..", y="..tostring(self.y))
+    if (Game.socketOpen and (Game.x ~= prevX or Game.y ~= prevY)) then
+        Socket.send("Position updated: x="..tostring(Game.x)..", y="..tostring(Game.y))
     end
 end
 
-function Game:draw()
-    if (self.spriteIndex ~= self.prevSpriteIndex) then
-        self.spriteCanvas.clearCanvas()
-        self.spriteCanvas.drawImage("guy.png", self.spriteIndex * 64, 0, 64, 64, 0, 0, 64, 64)
-        self.prevSpriteIndex = self.spriteIndex
+function Game.draw()
+    if (Game.spriteIndex ~= Game.prevSpriteIndex) then
+        Game.spriteCanvas.clearCanvas()
+        Game.spriteCanvas.drawImage("guy.png", Game.spriteIndex * 64, 0, 64, 64, 0, 0, 64, 64)
+        Game.prevSpriteIndex = Game.spriteIndex
     end
-    self.bgCanvas.draw(0, 0)
-    self.spriteCanvas.draw(self.x, self.y)
+    Game.background:draw()
+    Game.spriteCanvas.draw(Game.x, Game.y)
 end
 
-function Game:keyUp(key: string)
-    self.keyStates[key] = false
+function Game.keyUp(key: string)
+    Game.keyStates[key] = false
 end
 
-function Game:keyPress(key: string)
-    self.keyStates[key] = true
+function Game.keyPress(key: string)
+    Game.keyStates[key] = true
 end
 
-function Game:websocketOpened()
+function Game.websocketOpened()
     Socket.send("Hello World!")
-    self.socketOpen = true
+    Game.socketOpen = true
 end
 
-function Game:websocketClosed(code: integer, reason: string)
+function Game.websocketClosed(code: integer, reason: string)
     print("Websocket closed with code "..code..", reason: "..tostring(reason))
-    self.socketOpen = false
+    Game.socketOpen = false
 end
 
-function Game:websocketMessage(message: string)
+function Game.websocketMessage(message: string)
     print(message)
     local _, _, x, y = string.find(message, "Position updated: x=(%d+%.?%d*), y=(%d+%.?%d*)")
     print(x)
     print(y)
     if (x and y) then
-        self.x = tonumber(x)
-        self.y = tonumber(y)
+        Game.x = tonumber(x)
+        Game.y = tonumber(y)
     end
 end
 
-function Game:onClick(x: number, y: number)
-    self.x = x - 32 -- account for sprite width
-    self.y = y - 32
-    Socket.send("Position updated: x="..tostring(self.x)..", y="..tostring(self.y))
+function Game.onClick(x: number, y: number)
+    Game.x = x - 32 -- account for sprite width
+    Game.y = y - 32
+    Socket.send("Position updated: x="..tostring(Game.x)..", y="..tostring(Game.y))
 end

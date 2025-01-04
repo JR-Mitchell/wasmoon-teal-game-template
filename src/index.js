@@ -81,7 +81,7 @@ function registerWebsocketCallbacks(triggerOpen) {
         if (game) {
             if (game["websocketMessage"] != undefined) {
                 websocket.onmessage = function(event) {
-                    game.websocketMessage(game, event.data);
+                    game.websocketMessage(event.data);
                 }
             }
             if (game["websocketOpened"] != undefined) {
@@ -89,22 +89,22 @@ function registerWebsocketCallbacks(triggerOpen) {
                 console.log(websocket.readyState)
                 if (triggerOpen && websocket.readyState == WebSocket.OPEN) {
                     console.log("b")
-                    game.websocketOpened(game);
+                    game.websocketOpened();
                 }
                 websocket.onopen = function() {
                     console.log("c")
-                    game.websocketOpened(game);
+                    game.websocketOpened();
                 }
             }
             if (game["websocketClosed"] != undefined) {
                 websocket.onclose = function(event) {
-                    game.websocketClosed(game, event.code, event.reason);
+                    game.websocketClosed(event.code, event.reason);
                 }
             }
             
             if (game["websocketError"] != undefined) {
                 websocket.onerror = function() {
-                    game.websocketError(game);
+                    game.websocketError();
                 }
             }
         }
@@ -171,13 +171,13 @@ const SocketCalls = {
 }
 
 function startGameLoop(game, lua) {
-    game.init(game);
+    game.init();
     let previousTime = Date.now();
     function loop() {
         try {
             const now = Date.now();
-            game.step(game, now - previousTime);
-            game.draw(game);
+            game.step(now - previousTime);
+            game.draw();
             previousTime = now;
             window.requestAnimationFrame(loop);
         } catch (e) {
@@ -218,19 +218,19 @@ async function execute() {
         // Set up any listeners
         if (game["keyUp"] != undefined) {
             document.addEventListener('keyup', (event) => {
-                game.keyUp(game, event.key);
+                game.keyUp(event.key);
             });
         }
 
         if (game["keyDown"] != undefined) {
             document.addEventListener('keydown', (event) => {
-                game.keyDown(game, event.key);
+                game.keyDown(event.key);
             });
         }
 
         if (game["keyPress"] != undefined) {
             document.addEventListener('keypress', (event) => {
-                game.keyPress(game, event.key);
+                game.keyPress(event.key);
             });
         }
 
@@ -239,7 +239,7 @@ async function execute() {
                 let x,y;
                 [x,y] = transformPointToCanvas(event.pageX, event.pageY);
                 if (x >= 0 && x <= canvasElement.width && y >= 0 && y <= canvasElement.height) {
-                    game.onClick(game, x, y);
+                    game.onClick(x, y);
                 }
             });
         }
