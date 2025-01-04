@@ -10,7 +10,7 @@ const canvasStyle = window.getComputedStyle(canvasElement, null);
 const factory = new LuaFactory(wasmFile);
 
 // Stored properties
-const initFilename = "init.lua"
+const initFilename = "shared/init.lua"
 var blankColour = "white"
 var imageMap = new Map();
 var websocket;

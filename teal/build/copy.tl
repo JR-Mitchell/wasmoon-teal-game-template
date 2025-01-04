@@ -13,7 +13,7 @@ local function copyFileToAssets(filename: string)
     copyFile("src/assets/"..filename, "dist/assets/"..filename)
 end
 
-require("init")
+require("shared.init")
 for _, filename in ipairs(config.imageFilenames) do
     copyFileToAssets(filename)
 end
@@ -23,7 +23,7 @@ for _, filename in ipairs(config.luaFilenames) do
 end
 
 -- Needed to initialise client-side
-copyFileToAssets("init.lua")
+copyFileToAssets("shared/init.lua")
 
 -- Icon for the webpage; not actually used in the game
 copyFileToAssets("icon.png")

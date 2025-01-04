@@ -8,7 +8,7 @@ local FrameHandler = require('server.websockets.frameHandler')
 local ConnectionHandler = require('server.websockets.connectionHandler')
 local ServerClientRegister = require('server.websockets.serverClientRegister')
 local socket = require("socket")
-local subprotocol = require("subprotocol")
+local subprotocol = require("shared.subprotocol")
 
 -- Patch the mimetypes.guess function to handle wasm
 local super = mimetypes.guess

@@ -5,7 +5,7 @@ global config: Config = {
     },
     luaFilenames = {
         "game/main.lua",
-        "subprotocol.lua"
+        "shared/subprotocol.lua"
     },
     blankColour = "black",
     pageBackgroundColour = "powderblue",
