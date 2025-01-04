@@ -148,7 +148,7 @@ const SocketCalls = {
 }
 
 function startGameLoop(game, lua) {
-    game.init();
+    game.init(game);
     let previousTime = Date.now();
     function loop() {
         try {
