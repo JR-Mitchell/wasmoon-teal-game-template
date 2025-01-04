@@ -4,13 +4,13 @@ global config: Config = {
         "guy.png"
     },
     luaFilenames = {
-        "main.lua",
+        "game/main.lua",
         "subprotocol.lua"
     },
     blankColour = "black",
     pageBackgroundColour = "powderblue",
     displayWidth = 1920,
     displayHeight = 1080,
-    entryPoint = "main.lua"
+    entryPoint = "game/main.lua"
 }
 print("Completed initialising...")
