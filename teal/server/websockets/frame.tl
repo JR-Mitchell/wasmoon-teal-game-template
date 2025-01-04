@@ -1,6 +1,6 @@
 local type socket = require("socket")
 local type SendableFrame = require("server.websockets.sendableFrame")
-local type ContainedError = require("containederror")
+local type ContainedError = require("server.containederror")
 
 local record Frame
     fin: boolean

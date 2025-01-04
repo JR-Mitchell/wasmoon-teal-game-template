@@ -2,7 +2,7 @@ local type Pegasus = require('pegasus')
 local type Handler = require('pegasus.handler')
 local type FrameHandler = require('server.websockets.frameHandler')
 local type ServerClientRegister = require('server.websockets.serverClientRegister')
-local type ContainedError = require("containederror")
+local type ContainedError = require("server.containederror")
 local socket = require("socket")
 local Frame = require("server.websockets.frame")
 
