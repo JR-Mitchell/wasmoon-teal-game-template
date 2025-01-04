@@ -113,16 +113,28 @@ function registerWebsocketCallbacks(triggerOpen) {
 
 // Interface enabling Lua to draw to canvas
 const CanvasCalls = {
-    clearCanvas: function() {
-        canvas.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        canvas.fillStyle = blankColour;
-        canvas.fillRect(0, 0, canvasElement.width, canvasElement.height);
-    },
+    newCanvas: function() {
+        const newCanvasElement = document.createElement("canvas");
+        newCanvasElement.width = canvasElement.width;
+        newCanvasElement.height = canvasElement.height;
+        const newCanvas = newCanvasElement.getContext("2d");
+        return {
+            clearCanvas: function() {
+                newCanvas.clearRect(0, 0, newCanvasElement.width, newCanvasElement.height);
+                newCanvas.fillStyle = blankColour;
+                newCanvas.fillRect(0, 0, newCanvasElement.width, newCanvasElement.height);
+            },
+        
+            drawImage: function(path, sx, sy, sw, sh, dx, dy, dw, dh) {
+                if (imageMap.has(path)) {
+                    const bmp = imageMap.get(path);
+                    newCanvas.drawImage(bmp, sx, sy, sw, sh, dx, dy, dw, dh);
+                }
+            },
 
-    drawImage: function(path, sx, sy, sw, sh, dx, dy, dw, dh) {
-        if (imageMap.has(path)) {
-            const bmp = imageMap.get(path);
-            canvas.drawImage(bmp, sx, sy, sw, sh, dx, dy, dw, dh);
+            draw: function(x, y) {
+                canvas.drawImage(newCanvasElement, x, y)
+            }
         }
     }
 };
