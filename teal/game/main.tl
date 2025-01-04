@@ -27,6 +27,11 @@ Game.socketOpen = false
 function Game:init()
     Socket.open(subprotocol)
     self.bgCanvas = Canvas.newCanvas(false)
+    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 0, 888, 64, 64)
+    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 0, 952, 64, 64)
+    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 0, 1016, 64, 64)
+    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 64, 1016, 64, 64)
+    self.bgCanvas.drawImage("block.png", 0, 0, 64, 64, 1856, 1016, 64, 64)
     self.spriteCanvas = Canvas.newCanvas(true)
 end
 
