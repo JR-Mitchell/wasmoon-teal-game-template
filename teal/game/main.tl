@@ -3,8 +3,10 @@ local subprotocol = require("shared.subprotocol")
 global record Game
     keyStates: {string:boolean}
     speed: number
+    bgCanvas: Canvas.SubCanvas
     spriteCanvas: Canvas.SubCanvas
     spriteIndex: integer
+    prevSpriteIndex: integer
     x: number
     y: number
     socketOpen: boolean
@@ -24,7 +26,8 @@ Game.socketOpen = false
 
 function Game:init()
     Socket.open(subprotocol)
-    self.spriteCanvas = Canvas.newCanvas()
+    self.bgCanvas = Canvas.newCanvas(false)
+    self.spriteCanvas = Canvas.newCanvas(true)
 end
 
 function Game:step(dt: number)
@@ -50,9 +53,13 @@ function Game:step(dt: number)
 end
 
 function Game:draw()
-    self.spriteCanvas.clearCanvas()
-    self.spriteCanvas.drawImage("guy.png", self.spriteIndex * 64, 0, 64, 64, self.x, self.y, 64, 64)
-    self.spriteCanvas.draw(0, 0)
+    if (self.spriteIndex ~= self.prevSpriteIndex) then
+        self.spriteCanvas.clearCanvas()
+        self.spriteCanvas.drawImage("guy.png", self.spriteIndex * 64, 0, 64, 64, 0, 0, 64, 64)
+        self.prevSpriteIndex = self.spriteIndex
+    end
+    self.bgCanvas.draw(0, 0)
+    self.spriteCanvas.draw(self.x, self.y)
 end
 
 function Game:keyUp(key: string)
