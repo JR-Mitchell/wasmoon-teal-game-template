@@ -120,7 +120,7 @@ function Frame:readNext(client: socket.Client): Frame
     return instance
 end
 
-function Frame:newPingFrame(payloadBytes: string): Frame
+function Frame:newPingFrame(payloadBytes?: string): Frame
     local instance: Frame = {}
     setmetatable(instance, FrameMetatable)
     instance.fin = true

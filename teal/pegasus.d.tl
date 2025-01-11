@@ -35,7 +35,7 @@ local record Pegasus
         write: function(self: Response, body: string, stayOpen: boolean)
         addHeader: function(self: Response, key: string, value: string)
         addHeaders: function(self: Response, headers: {string:string})
-        statusCode: function(self: Response, statusCode: integer, statusText: string)
+        statusCode: function(self: Response, statusCode: integer, statusText?: string)
         sendHeaders: function(self: Response, stayOpen: boolean, body: string)
     end
 
