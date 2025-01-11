@@ -7,7 +7,7 @@
   },
   "scripts": {
     "copy": "if [ ! -d dist/assets ]; then mkdir dist/assets; fi; if [ ! -d dist/assets/game ]; then mkdir dist/assets/game; fi; if [ ! -d dist/assets/shared ]; then mkdir dist/assets/shared; fi; tl run teal/build/copy.tl",
-    "build": "tl build && esbuild src/index.js --bundle --platform=node --loader:.wasm=file --outfile=dist/index.js && npm run copy",
+    "build": "cyan build && esbuild src/index.js --bundle --platform=node --loader:.wasm=file --outfile=dist/index.js && npm run copy",
     "run": "tl run teal/server/main.tl",
     "start": "npm run build && npm run run"
   },
