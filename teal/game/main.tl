@@ -1,4 +1,4 @@
-local subprotocol = require("subprotocol")
+local subprotocol = require("shared.subprotocol")
 
 global record Game
     keyStates: {string:boolean}
