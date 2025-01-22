@@ -13,6 +13,10 @@ local record ServerClientRegister
     messageQueue: {socket.Client:{SendableFrame}}
 end
 
+local ServerClientRegisterMetatable: metatable<ServerClientRegister> = {
+    __index = ServerClientRegister
+}
+
 function ServerClientRegister:new(server: socket.Server): ServerClientRegister
     local instance: ServerClientRegister = {
         server = server,
@@ -23,7 +27,7 @@ function ServerClientRegister:new(server: socket.Server): ServerClientRegister
         immediateMessageQueue = {},
         messageQueue = {}
     }
-    setmetatable(instance, {__index = ServerClientRegister})
+    setmetatable(instance, ServerClientRegisterMetatable)
     return instance
 end
 
