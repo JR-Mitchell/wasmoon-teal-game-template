@@ -9,8 +9,13 @@ global type Config = record
 end
 
 global record Canvas
-    clearCanvas: function()
-    drawImage: function(path: string, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number)
+    record SubCanvas
+        draw: function(x: number, y: number)
+        drawImage: function(path: string, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number)
+        clearCanvas: function()
+    end
+
+    newCanvas: function(transparent: boolean): SubCanvas
 end
 
 global record Socket

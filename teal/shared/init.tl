@@ -1,10 +1,13 @@
 print("Started initialising...")
 global config: Config = {
     imageFilenames = {
-        "guy.png"
+        "guy.png",
+        "block.png"
     },
     luaFilenames = {
         "game/main.lua",
+        "game/background.lua",
+        "game/character.lua",
         "shared/subprotocol.lua"
     },
     blankColour = "black",
