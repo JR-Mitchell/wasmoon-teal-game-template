@@ -12,7 +12,7 @@ local CharacterMetatable: metatable<Character> = {
  }
 
 function Character.new(): Character
-    local instance = {}
+    local instance: Character = {}
     setmetatable(instance, CharacterMetatable)    
     instance.speed = 0.5
     instance.spriteIndex = 0
