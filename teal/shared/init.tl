@@ -6,8 +6,10 @@ global config: Config = {
     },
     luaFilenames = {
         "game/main.lua",
-        "game/background.lua",
-        "game/character.lua",
+        "game/gamestatemetatable.lua",
+        "game/state/main/background.lua",
+        "game/state/main/character.lua",
+        "game/state/main/state.lua",
         "shared/subprotocol.lua"
     },
     blankColour = "black",

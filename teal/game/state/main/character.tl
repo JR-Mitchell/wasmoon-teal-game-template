@@ -1,3 +1,5 @@
+local type IGame = require("game.igame")
+
 local record Character
     canvas: Canvas.SubCanvas
     spriteIndex: integer
@@ -22,25 +24,25 @@ function Character.new(): Character
     return instance
 end
 
-function Character:step(dt: number, keyStates: {string:boolean}, socketSend: function(string))
+function Character:step(dt: number, game: IGame)
     local prevX = self.x
     local prevY = self.y
-    if (keyStates["w"] and not keyStates["s"]) then
+    if (game.keyStates["w"] and not game.keyStates["s"]) then
         self.y = self.y - self.speed * dt
     end
-    if (keyStates["a"] and not keyStates["d"]) then
+    if (game.keyStates["a"] and not game.keyStates["d"]) then
         self.spriteIndex = 0
         self.x = self.x - self.speed * dt
     end
-    if (keyStates["s"] and not keyStates["w"]) then
+    if (game.keyStates["s"] and not game.keyStates["w"]) then
         self.y = self.y + self.speed * dt
     end
-    if (keyStates["d"] and not keyStates["a"]) then
+    if (game.keyStates["d"] and not game.keyStates["a"]) then
         self.spriteIndex = 1
         self.x = self.x + self.speed * dt
     end
     if (self.x ~= prevX or self.y ~= prevY) then
-        socketSend("Position updated: x="..tostring(self.x)..", y="..tostring(self.y))
+        game.socketSend("Position updated: x="..tostring(self.x)..", y="..tostring(self.y))
     end
 end
 
