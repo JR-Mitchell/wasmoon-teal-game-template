@@ -7,11 +7,6 @@ global record Game
     background: Background
     character: Character
     socketOpen: boolean
-    step: function(dt: number)
-    draw: function()
-    keyUp: function(key: string)
-    keyDown: function(key: string)
-    keyPress: function(key: string)
 end
 
 Game.keyStates = {}
@@ -69,4 +64,12 @@ function Game.onClick(x: number, y: number)
     -- The -32 accounts for sprite width
     Game.character:updatePosition(x - 32, y - 32)
     Socket.send("Position updated: x="..tostring(Game.character.x)..", y="..tostring(Game.character.y))
+end
+
+function Game.onPointerDown(_: number, _: number)
+    -- currently no-op
+end
+
+function Game.onPointerUp(_: number, _: number)
+    -- currently no-op
 end
