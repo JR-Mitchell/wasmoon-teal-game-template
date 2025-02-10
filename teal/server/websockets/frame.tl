@@ -53,11 +53,11 @@ function Frame:setMaskedAndLength(byte: integer, client: socket.Client)
     if (self.length == 126) then
         local nextTwoBytes, errorMessage = client:receive(2)
         if (errorMessage ~= nil) then sendError(errorMessage) end
-        self.length = string.byte(nextTwoBytes, 1) + 256 * string.byte(nextTwoBytes, 2)
+        self.length = string.byte(nextTwoBytes, 2) + 256 * string.byte(nextTwoBytes, 1)
     elseif (self.length == 127) then
         local nextFourBytes, errorMessage = client:receive(4)
         if (errorMessage ~= nil) then sendError(errorMessage) end
-        self.length = string.byte(nextFourBytes, 1) + 256 * (string.byte(nextFourBytes, 2) + 256 * (string.byte(nextFourBytes, 3) + 256 * string.byte(nextFourBytes, 4)))
+        self.length = string.byte(nextFourBytes, 4) + 256 * (string.byte(nextFourBytes, 3) + 256 * (string.byte(nextFourBytes, 2) + 256 * string.byte(nextFourBytes, 1)))
     end
 end
 
@@ -189,9 +189,9 @@ function Frame:getSendable(): SendableFrame
     end
     local binaryString = string.char(firstByte) .. string.char(secondByte)
     if (self.length > 65535) then
-        binaryString = binaryString .. string.char(self.length % 256) .. string.char((self.length // 256) % 256) .. string.char((self.length // (256*256)) % 256) .. string.char(self.length // (256*256*256))
+        binaryString = binaryString .. string.char(self.length // (256*256*256)) .. string.char((self.length // (256*256)) % 256) .. string.char((self.length // 256) % 256) .. string.char(self.length % 256)
     elseif (self.length > 126) then
-        binaryString = binaryString .. string.char(self.length % 256) .. string.char(self.length // 256)
+        binaryString = binaryString .. string.char(self.length // 256) .. string.char(self.length % 256)
     end
     if (self.masked) then
         for i=1,4 do

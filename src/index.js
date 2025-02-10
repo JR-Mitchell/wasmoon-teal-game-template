@@ -220,19 +220,19 @@ async function execute() {
             document.addEventListener('keyup', (event) => {
                 game.keyUp(event.key);
             });
-        }
+        };
 
         if (game["keyDown"] != undefined) {
             document.addEventListener('keydown', (event) => {
                 game.keyDown(event.key);
             });
-        }
+        };
 
         if (game["keyPress"] != undefined) {
             document.addEventListener('keypress', (event) => {
                 game.keyPress(event.key);
             });
-        }
+        };
 
         if (game["onClick"] != undefined) {
             canvasElement.addEventListener('click', (event) => {
@@ -242,7 +242,25 @@ async function execute() {
                     game.onClick(x, y);
                 }
             });
-        }
+        };
+
+        if (game["onPointerDown"] != undefined) {
+            document.addEventListener('pointerdown', (event) => {
+                let x, y;
+                [x, y] = transformPointToCanvas(event.pageX, event.pageY);
+                if (x >= 0 && x <= canvasElement.width && y >= 0 && y <= canvasElement.height) {
+                    game.onPointerDown(x, y);
+                }
+            });
+        };
+
+        if (game["onPointerUp"] != undefined) {
+            document.addEventListener('pointerup', (event) => {
+                let x, y;
+                [x, y] = transformPointToCanvas(event.pageX, event.pageY);
+                game.onPointerUp(x, y);
+            });
+        };
 
         registerWebsocketCallbacks(true);
 

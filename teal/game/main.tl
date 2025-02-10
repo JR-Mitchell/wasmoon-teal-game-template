@@ -1,17 +1,12 @@
 local subprotocol = require("shared.subprotocol")
-local Background = require("game.background")
-local Character = require("game.character")
+local type IGame = require("game.igame")
+local type IGameState = require("game.igamestate")
+local MainState = require("game.state.main.state")
 
-global record Game
+global record Game is IGame
     keyStates: {string:boolean}
-    background: Background
-    character: Character
     socketOpen: boolean
-    step: function(dt: number)
-    draw: function()
-    keyUp: function(key: string)
-    keyDown: function(key: string)
-    keyPress: function(key: string)
+    currentState: IGameState
 end
 
 Game.keyStates = {}
@@ -19,8 +14,7 @@ Game.socketOpen = false
 
 function Game.init()
     Socket.open(subprotocol)
-    Game.background = Background.new()
-    Game.character = Character.new()
+    Game.currentState = MainState.new()
 end
 
 function Game.socketSend(message: string)
@@ -30,12 +24,11 @@ function Game.socketSend(message: string)
 end
 
 function Game.step(dt: number)
-    Game.character:step(dt, Game.keyStates, Game.socketSend)
+    Game.currentState:step(dt, Game)
 end
 
 function Game.draw()
-    Game.background:draw()
-    Game.character:draw()
+    Game.currentState:draw()
 end
 
 function Game.keyUp(key: string)
@@ -57,16 +50,17 @@ function Game.websocketClosed(code: integer, reason: string)
 end
 
 function Game.websocketMessage(message: string)
-    print(message)
-    local _, _, x, y = string.find(message, "Position updated: x=(%d+%.?%d*), y=(%d+%.?%d*)")
-    if (x and y) then
-        print("From Lua: "..message)
-        Game.character:updatePosition(tonumber(x), tonumber(y))
-    end
+    Game.currentState:websocketMessage(message, Game)
 end
 
 function Game.onClick(x: number, y: number)
-    -- The -32 accounts for sprite width
-    Game.character:updatePosition(x - 32, y - 32)
-    Socket.send("Position updated: x="..tostring(Game.character.x)..", y="..tostring(Game.character.y))
+    Game.currentState:onClick(x, y, Game)
+end
+
+function Game.onPointerDown(x: number, y: number)
+    Game.currentState:onPointerDown(x, y)
+end
+
+function Game.onPointerUp(x: number, y: number)
+    Game.currentState:onPointerUp(x, y)
 end
